@@ -2,8 +2,9 @@ package app.independo.capacitoremojipicker;
 
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 import app.independo.capacitoremojipicker.core.EmojiPickerResult;
-import app.independo.capacitoremojipicker.presenter.DefaultEmojiPickerPresenter;
+import app.independo.capacitoremojipicker.presenter.DefaultEmojiPickerDialogFactory;
 import app.independo.capacitoremojipicker.presenter.EmojiPickerPresenter;
+import app.independo.capacitoremojipicker.presenter.NativeEmojiPickerPresenter;
 import app.independo.capacitoremojipicker.service.EmojiPickerService;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -21,7 +22,7 @@ public class EmojiPicker extends Plugin {
     @Override
     public void load() {
         super.load();
-        EmojiPickerPresenter presenter = new DefaultEmojiPickerPresenter();
+        EmojiPickerPresenter presenter = new NativeEmojiPickerPresenter(this::getActivity, new DefaultEmojiPickerDialogFactory());
         service = new EmojiPickerService(presenter);
     }
 

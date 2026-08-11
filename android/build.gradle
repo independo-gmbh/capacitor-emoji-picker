@@ -3,6 +3,9 @@ ext {
     androidxAppCompatVersion = project.hasProperty('androidxAppCompatVersion') ? rootProject.ext.androidxAppCompatVersion : '1.7.0'
     androidxJunitVersion = project.hasProperty('androidxJunitVersion') ? rootProject.ext.androidxJunitVersion : '1.2.1'
     androidxEspressoCoreVersion = project.hasProperty('androidxEspressoCoreVersion') ? rootProject.ext.androidxEspressoCoreVersion : '3.6.1'
+    androidxEmoji2EmojiPickerVersion = project.hasProperty('androidxEmoji2EmojiPickerVersion') ? rootProject.ext.androidxEmoji2EmojiPickerVersion : '1.5.0'
+    materialVersion = project.hasProperty('materialVersion') ? rootProject.ext.materialVersion : '1.12.0'
+    androidxLifecycleVersion = project.hasProperty('androidxLifecycleVersion') ? rootProject.ext.androidxLifecycleVersion : '2.8.7'
 }
 
 buildscript {
@@ -65,6 +68,12 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':capacitor-android')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.emoji2:emoji2-emojipicker:$androidxEmoji2EmojiPickerVersion"
+    implementation "com.google.android.material:material:$materialVersion"
+    // Relied on for LifecycleOwner/DefaultLifecycleObserver in NativeEmojiPickerPresenter. Declared
+    // explicitly (rather than relying on it being pulled in transitively via appcompat) so a future
+    // appcompat version bump can't silently break compilation.
+    implementation "androidx.lifecycle:lifecycle-common:$androidxLifecycleVersion"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
