@@ -9,7 +9,7 @@ import app.independo.capacitoremojipicker.presenter.EmojiPickerPresenter;
 public class EmojiPickerService {
 
     private final EmojiPickerPresenter presenter;
-    private boolean isPresenting = false;
+    private volatile boolean isPresenting = false;
 
     public EmojiPickerService(EmojiPickerPresenter presenter) {
         this.presenter = presenter;

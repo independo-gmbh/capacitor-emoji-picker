@@ -20,8 +20,9 @@ The `@independo/capacitor-emoji-picker` plugin presents an emoji picker on Andro
 and resolves with the emoji the user selected.
 
 > **Status:** the web picker (via [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element))
-> is implemented. Android and iOS native presentation are implemented in follow-up releases; until
-> then `present()` rejects with a `NOT_IMPLEMENTED` error on those platforms.
+> and the Android native picker (via [`androidx.emoji2:emoji2-emojipicker`](https://developer.android.com/jetpack/androidx/releases/emoji2))
+> are implemented. iOS native presentation will be implemented in a follow-up release; until then
+> `present()` rejects with a `NOT_IMPLEMENTED` error on iOS.
 
 The web picker self-hosts its emoji dataset as a same-origin `blob:` object URL (rather than
 fetching it from `emoji-picker-element`'s default CDN). Apps with a restrictive Content-Security-Policy
@@ -63,6 +64,11 @@ dismisses the picker without selecting an emoji.
 
 Calling this method again while a picker is already active rejects immediately with the
 `ALREADY_PRESENTING` error code rather than presenting a second, overlapping picker.
+
+On Android, if native presentation fails (e.g. no Activity is available, or the picker dialog
+could not be created), the call rejects with the `NATIVE_UNAVAILABLE` error code — distinct from
+the user simply dismissing the picker without selecting an emoji, which resolves with
+`{ emoji: null }` instead.
 
 | Param         | Type                                                              | Description                       |
 | ------------- | ----------------------------------------------------------------- | --------------------------------- |
