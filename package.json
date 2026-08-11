@@ -1,0 +1,108 @@
+{
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    },
+    "android": {
+      "src": "android"
+    }
+  },
+  "prettier": "@ionic/prettier-config",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/independo-gmbh/capacitor-emoji-picker.git"
+  },
+  "description": "Capacitor plugin for presenting an emoji picker",
+  "version": "0.0.1",
+  "packageManager": "pnpm@11.8.0",
+  "devDependencies": {
+    "@capacitor/android": "catalog:",
+    "@capacitor/core": "catalog:",
+    "@capacitor/docgen": "catalog:",
+    "@capacitor/ios": "catalog:",
+    "@eslint/js": "10.0.1",
+    "@ionic/prettier-config": "^4.0.0",
+    "@ionic/swiftlint-config": "^2.0.0",
+    "@saithodev/semantic-release-backmerge": "^4.0.1",
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/git": "^11.0.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.2.0",
+    "conventional-changelog-conventionalcommits": "^10.2.1",
+    "eslint": "10.8.0",
+    "globals": "17.8.0",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
+    "rollup": "^4.62.4",
+    "semantic-release": "^25.0.9",
+    "swiftlint": "^2.0.0",
+    "ts-jest": "^29.4.12",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "8.66.0"
+  },
+  "main": "dist/plugin.cjs.js",
+  "files": [
+    "android/src/main/",
+    "android/build.gradle",
+    "dist/",
+    "IndependoCapacitorEmojiPicker.podspec",
+    "ios/Sources",
+    "Package.swift"
+  ],
+  "author": "Independo GmbH",
+  "types": "dist/esm/index.d.ts",
+  "bugs": {
+    "url": "https://github.com/independo-gmbh/capacitor-emoji-picker/issues"
+  },
+  "scripts": {
+    "upgrade": "corepack prepare pnpm@latest --activate && pnpm --recursive update",
+    "build": "pnpm run clean && pnpm run docgen && tsc && rollup -c rollup.config.mjs",
+    "lint": "pnpm run eslint",
+    "prepublishOnly": "pnpm run build",
+    "verify": "pnpm run verify:ios && pnpm run verify:android && pnpm run verify:web",
+    "verify:android": "node scripts/verify-android.js",
+    "verify:ios": "xcodebuild -scheme IndependoCapacitorEmojiPicker -destination generic/platform=iOS",
+    "verify:web": "pnpm run build",
+    "watch": "tsc --watch",
+    "test": "pnpm run test:web && pnpm run test:android && pnpm run test:ios",
+    "test:web": "jest",
+    "test:web:coverage": "jest --coverage --coverageReporters=lcov --coverageReporters=text-summary",
+    "test:android": "node scripts/verify-android.js testDebugUnitTest",
+    "test:android:coverage": "node scripts/verify-android.js testDebugUnitTest jacocoTestReport",
+    "test:ios": "node scripts/test-ios.js",
+    "test:ios:coverage": "node scripts/test-ios.js --coverage --result-bundle-path coverage/ios.xcresult && node scripts/xccov-to-cobertura.js --xcresult coverage/ios.xcresult --output coverage/ios-cobertura.xml",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" \"example/**/*.ts\"",
+    "clean": "rm -rf dist",
+    "swiftlint": "node-swiftlint",
+    "docgen": "docgen --api EmojiPickerPlugin --output-readme README.md --output-json dist/docs.json",
+    "fmt": "pnpm run eslint --fix"
+  },
+  "name": "@independo/capacitor-emoji-picker",
+  "swiftlint": "@ionic/swiftlint-config",
+  "license": "MIT",
+  "keywords": [
+    "capacitor",
+    "plugin",
+    "native",
+    "emoji",
+    "emoji-picker",
+    "unicode",
+    "ios",
+    "android"
+  ],
+  "publishConfig": {
+    "provenance": true,
+    "access": "public"
+  },
+  "unpkg": "dist/plugin.js",
+  "contributors": [
+    {
+      "email": "admin@independo.app",
+      "name": "Independo GmbH"
+    }
+  ],
+  "peerDependencies": {
+    "@capacitor/core": ">=8.0.0"
+  },
+  "module": "dist/esm/index.js"
+}

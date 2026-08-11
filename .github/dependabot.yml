@@ -1,0 +1,35 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+    groups:
+      capacitor:
+        patterns:
+          - "@capacitor/*"
+      ionic:
+        patterns:
+          - "@ionic/*"
+      semantic-release:
+        patterns:
+          - "*semantic-release*"
+      jest:
+        patterns:
+          - "*jest*"
+      eslint:
+        patterns:
+          - "*eslint*"
+
+  - package-ecosystem: "gradle"
+    directory: "/android"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"

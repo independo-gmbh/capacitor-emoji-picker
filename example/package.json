@@ -1,0 +1,27 @@
+{
+  "name": "@independo/capacitor-emoji-picker-example",
+  "version": "1.0.0",
+  "description": "Emoji Picker example app",
+  "main": "index.js",
+  "keywords": [
+    "capacitor",
+    "mobile"
+  ],
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@capacitor/android": "catalog:",
+    "@capacitor/core": "catalog:",
+    "@capacitor/ios": "catalog:",
+    "@independo/capacitor-emoji-picker": "workspace:*"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "catalog:",
+    "vite": "^8.2.1"
+  },
+  "author": "",
+  "license": "ISC"
+}

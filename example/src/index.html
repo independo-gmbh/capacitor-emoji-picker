@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Emoji Picker Example</title>
+    <meta
+      name="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+    <script defer type="module" src="./js/script.js"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Emoji Picker Test</h1>
+        <p>Use this screen to validate the plugin behavior on web, Android, and iOS.</p>
+      </header>
+
+      <section>
+        <h2>Presentation</h2>
+        <button id="present-auto" type="button">Present emoji picker (auto)</button>
+        <button id="present-web" type="button">Present emoji picker (web)</button>
+      </section>
+
+      <section>
+        <h2>Result</h2>
+        <p>Selected emoji: <strong id="selected-emoji">—</strong></p>
+        <p>Last error: <strong id="error-output">None</strong></p>
+      </section>
+    </main>
+  </body>
+</html>

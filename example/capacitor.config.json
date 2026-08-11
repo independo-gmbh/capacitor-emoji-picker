@@ -1,0 +1,6 @@
+{
+  "appId": "app.independo.emojipicker.example",
+  "appName": "Emoji Picker Example",
+  "bundledWebRuntime": false,
+  "webDir": "dist"
+}
