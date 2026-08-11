@@ -23,6 +23,8 @@
     "@eslint/js": "10.0.1",
     "@ionic/prettier-config": "^4.0.0",
     "@ionic/swiftlint-config": "^2.0.0",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
     "@saithodev/semantic-release-backmerge": "^4.0.1",
     "@semantic-release/changelog": "^7.0.0",
     "@semantic-release/git": "^11.0.1",
@@ -104,5 +106,9 @@
   "peerDependencies": {
     "@capacitor/core": ">=8.0.0"
   },
-  "module": "dist/esm/index.js"
+  "module": "dist/esm/index.js",
+  "dependencies": {
+    "emoji-picker-element": "^1.29.1",
+    "emoji-picker-element-data": "^1.8.0"
+  }
 }
