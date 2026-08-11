@@ -19,9 +19,13 @@
 The `@independo/capacitor-emoji-picker` plugin presents an emoji picker on Android, iOS, and Web
 and resolves with the emoji the user selected.
 
-> **Status:** this package currently ships the plugin scaffolding and public API surface. Platform
-> presentation (web, Android, iOS) is implemented in follow-up releases; until then `present()`
-> rejects with a `NOT_IMPLEMENTED` error on every platform.
+> **Status:** the web picker (via [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element))
+> is implemented. Android and iOS native presentation are implemented in follow-up releases; until
+> then `present()` rejects with a `NOT_IMPLEMENTED` error on those platforms.
+
+The web picker self-hosts its emoji dataset as a same-origin `blob:` object URL (rather than
+fetching it from `emoji-picker-element`'s default CDN). Apps with a restrictive Content-Security-Policy
+need to allow `blob:` in `connect-src`/`default-src` for this dataset to load.
 
 ## Installation
 
