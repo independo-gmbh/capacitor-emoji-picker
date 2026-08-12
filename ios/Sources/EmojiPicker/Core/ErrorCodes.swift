@@ -6,4 +6,7 @@ enum ErrorCodes {
     static let alreadyPresenting = "ALREADY_PRESENTING"
     /// The requested presentation is not implemented on this platform yet.
     static let notImplemented = "NOT_IMPLEMENTED"
+    /// The native picker UI could not be presented (e.g. no active view controller, emoji input
+    /// mode unavailable); distinct from user cancellation.
+    static let nativeUnavailable = "NATIVE_UNAVAILABLE"
 }

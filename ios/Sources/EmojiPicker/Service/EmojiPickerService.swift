@@ -10,14 +10,14 @@ final class EmojiPickerService {
     }
 
     /// Presents the picker, rejecting a second concurrent call instead of overlapping pickers.
-    func present(presentation: String, completion: @escaping (Result<EmojiPickerResult, EmojiPickerError>) -> Void) {
+    func present(options: EmojiPickerPresentOptions, completion: @escaping (Result<EmojiPickerResult, EmojiPickerError>) -> Void) {
         if isPresenting {
             completion(.failure(EmojiPickerError(code: ErrorCodes.alreadyPresenting)))
             return
         }
 
         isPresenting = true
-        presenter.present(presentation: presentation) { [weak self] result in
+        presenter.present(options: options) { [weak self] result in
             self?.isPresenting = false
             completion(result)
         }

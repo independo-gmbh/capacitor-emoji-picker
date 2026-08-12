@@ -11,6 +11,14 @@
     <meta name="msapplication-tap-highlight" content="no" />
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+    <style>
+      body {
+        padding-top: max(env(safe-area-inset-top), 1rem);
+        padding-left: max(env(safe-area-inset-left), 1rem);
+        padding-right: max(env(safe-area-inset-right), 1rem);
+        padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+      }
+    </style>
     <script defer type="module" src="./js/script.js"></script>
   </head>
   <body>
@@ -24,6 +32,27 @@
         <h2>Presentation</h2>
         <button id="present-auto" type="button">Present emoji picker (auto)</button>
         <button id="present-web" type="button">Present emoji picker (web)</button>
+      </section>
+
+      <section>
+        <h2>Close button (iOS only)</h2>
+        <label for="close-button-size">Size</label>
+        <select id="close-button-size">
+          <option value="xSmall">xSmall (24)</option>
+          <option value="small">Small (32)</option>
+          <option value="medium" selected>Medium (48)</option>
+          <option value="large">Large (64)</option>
+        </select>
+
+        <label for="close-button-position">Position</label>
+        <select id="close-button-position">
+          <option value="left">Left</option>
+          <option value="center">Center</option>
+          <option value="right" selected>Right</option>
+        </select>
+
+        <label><input id="close-button-hidden" type="checkbox" /> Hide close button</label>
+        <label><input id="dismiss-on-backdrop-tap" type="checkbox" checked /> Dismiss on backdrop tap</label>
       </section>
 
       <section>

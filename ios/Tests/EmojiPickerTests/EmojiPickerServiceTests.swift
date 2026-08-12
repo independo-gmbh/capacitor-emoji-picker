@@ -1,11 +1,14 @@
 import XCTest
 @testable import EmojiPicker
 
+private let defaultCloseButton = EmojiCloseButtonOptions(size: "large", position: "right", hidden: false)
+private let autoOptions = EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, dismissOnBackdropTap: true)
+
 /// A presenter that never calls back, simulating a picker that is still active.
 private final class PendingPresenter: EmojiPickerPresenter {
     var capturedCompletion: ((Result<EmojiPickerResult, EmojiPickerError>) -> Void)?
 
-    func present(presentation: String, completion: @escaping (Result<EmojiPickerResult, EmojiPickerError>) -> Void) {
+    func present(options: EmojiPickerPresentOptions, completion: @escaping (Result<EmojiPickerResult, EmojiPickerError>) -> Void) {
         capturedCompletion = completion
     }
 }
@@ -15,10 +18,10 @@ final class EmojiPickerServiceTests: XCTestCase {
         let presenter = PendingPresenter()
         let service = EmojiPickerService(presenter: presenter)
 
-        service.present(presentation: "auto") { _ in }
+        service.present(options: autoOptions) { _ in }
 
         let expectation = expectation(description: "second present rejected")
-        service.present(presentation: "auto") { result in
+        service.present(options: autoOptions) { result in
             if case .failure(let error) = result {
                 XCTAssertEqual(error.code, ErrorCodes.alreadyPresenting)
                 expectation.fulfill()
@@ -33,7 +36,7 @@ final class EmojiPickerServiceTests: XCTestCase {
         let service = EmojiPickerService(presenter: presenter)
 
         var firstEmoji: String?
-        service.present(presentation: "auto") { result in
+        service.present(options: autoOptions) { result in
             if case .success(let pickerResult) = result {
                 firstEmoji = pickerResult.emoji
             }
@@ -42,7 +45,7 @@ final class EmojiPickerServiceTests: XCTestCase {
         XCTAssertEqual(firstEmoji, "😀")
 
         let expectation = expectation(description: "second present accepted")
-        service.present(presentation: "auto") { result in
+        service.present(options: autoOptions) { result in
             if case .failure(let error) = result {
                 XCTFail("expected no synchronous rejection, got \(error.code)")
             }
