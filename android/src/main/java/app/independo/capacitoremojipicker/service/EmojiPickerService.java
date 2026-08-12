@@ -16,7 +16,7 @@ public class EmojiPickerService {
     }
 
     /** Presents the picker, rejecting a second concurrent call instead of overlapping pickers. */
-    public void present(String presentation, EmojiPickerCallback callback) {
+    public void present(String presentation, boolean dismissOnBackdropTap, EmojiPickerCallback callback) {
         if (isPresenting) {
             callback.onError(ErrorCodes.ALREADY_PRESENTING);
             return;
@@ -25,6 +25,7 @@ public class EmojiPickerService {
         isPresenting = true;
         presenter.present(
             presentation,
+            dismissOnBackdropTap,
             new EmojiPickerCallback() {
                 @Override
                 public void onResult(EmojiPickerResult result) {

@@ -30,8 +30,10 @@ public class EmojiPicker extends Plugin {
     @PluginMethod
     public void present(PluginCall call) {
         String presentation = call.getString("presentation", "auto");
+        boolean dismissOnBackdropTap = call.getBoolean("dismissOnBackdropTap", true);
         service.present(
             presentation,
+            dismissOnBackdropTap,
             new EmojiPickerCallback() {
                 @Override
                 public void onResult(EmojiPickerResult result) {

@@ -20,11 +20,11 @@ export interface EmojiPickerOptions {
      */
     closeButton?: EmojiPickerCloseButtonOptions;
     /**
-     * Dismiss the picker when the user taps the transparent area outside the keyboard/button.
+     * Dismiss the picker when the user taps the transparent area outside the keyboard/button (iOS)
+     * or the scrim outside the picker sheet (Android). Ignored on web.
      *
-     * Only consulted by the iOS native presentation. If `closeButton.hidden` is `true`, this is
-     * treated as `true` regardless of the value passed here, so the user always has a way to
-     * dismiss the keyboard.
+     * On iOS, if `closeButton.hidden` is `true`, this is treated as `true` regardless of the value
+     * passed here, so the user always has a way to dismiss the keyboard.
      * @default true
      */
     dismissOnBackdropTap?: boolean;

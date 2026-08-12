@@ -16,7 +16,7 @@ public class EmojiPickerServiceTest {
         EmojiPickerCallback capturedCallback;
 
         @Override
-        public void present(String presentation, EmojiPickerCallback callback) {
+        public void present(String presentation, boolean dismissOnBackdropTap, EmojiPickerCallback callback) {
             this.capturedCallback = callback;
         }
     }
@@ -26,7 +26,7 @@ public class EmojiPickerServiceTest {
         PendingPresenter presenter = new PendingPresenter();
         EmojiPickerService service = new EmojiPickerService(presenter);
 
-        service.present("auto", new EmojiPickerCallback() {
+        service.present("auto", true, new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 
@@ -35,7 +35,7 @@ public class EmojiPickerServiceTest {
         });
 
         String[] secondCallErrorCode = new String[1];
-        service.present("auto", new EmojiPickerCallback() {
+        service.present("auto", true, new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 
@@ -54,7 +54,7 @@ public class EmojiPickerServiceTest {
         EmojiPickerService service = new EmojiPickerService(presenter);
 
         String[] firstResultEmoji = new String[1];
-        service.present("auto", new EmojiPickerCallback() {
+        service.present("auto", true, new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {
                 firstResultEmoji[0] = result.getEmoji();
@@ -68,7 +68,7 @@ public class EmojiPickerServiceTest {
         assertEquals("😀", firstResultEmoji[0]);
 
         String[] secondErrorCode = new String[1];
-        service.present("auto", new EmojiPickerCallback() {
+        service.present("auto", true, new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 

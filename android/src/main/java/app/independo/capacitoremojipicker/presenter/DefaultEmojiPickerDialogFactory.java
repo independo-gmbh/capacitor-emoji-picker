@@ -9,7 +9,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 public class DefaultEmojiPickerDialogFactory implements EmojiPickerDialogFactory {
 
     @Override
-    public EmojiPickerDialogHandle create(Activity activity, Listener listener) {
+    public EmojiPickerDialogHandle create(Activity activity, boolean dismissOnBackdropTap, Listener listener) {
         BottomSheetDialog dialog = new BottomSheetDialog(
             activity,
             com.google.android.material.R.style.Theme_MaterialComponents_DayNight_BottomSheetDialog
@@ -26,6 +26,7 @@ public class DefaultEmojiPickerDialogFactory implements EmojiPickerDialogFactory
         });
 
         dialog.setContentView(pickerView);
+        dialog.setCanceledOnTouchOutside(dismissOnBackdropTap);
         dialog.setOnDismissListener(d -> listener.onDismissed());
         dialog.show();
 
