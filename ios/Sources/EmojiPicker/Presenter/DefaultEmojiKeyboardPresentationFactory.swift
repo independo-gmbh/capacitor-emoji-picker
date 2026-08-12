@@ -215,6 +215,12 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
         let size = EmojiCloseButtonSize(rawValue: options.size) ?? .medium
         let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: size.symbolPointSize, weight: .medium)
 
+        // `UIButton.Configuration.glass()` is iOS 26 SDK API, only present when compiling with the
+        // Swift 6.2 toolchain Xcode 26 ships. `#available` alone isn't enough to gate this: it's a
+        // runtime check, but the `.glass` symbol must also resolve at compile time, which fails on
+        // older Xcode/SDKs regardless of the runtime guard. Gate the whole branch behind a compiler
+        // version check so older toolchains never see this code.
+        #if compiler(>=6.2)
         if #available(iOS 26.0, *) {
             var configuration = UIButton.Configuration.glass()
             configuration.image = UIImage(systemName: "xmark")
@@ -222,6 +228,7 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
             configuration.cornerStyle = .capsule
             return UIButton(configuration: configuration)
         }
+        #endif
 
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "xmark.circle.fill", withConfiguration: symbolConfiguration), for: .normal)
