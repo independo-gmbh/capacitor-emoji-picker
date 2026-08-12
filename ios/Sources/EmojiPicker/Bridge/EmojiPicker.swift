@@ -19,7 +19,12 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
     /// Initializes dependencies after the plugin loads.
     public override func load() {
         super.load()
-        service = EmojiPickerService(presenter: DefaultEmojiPickerPresenter())
+        service = EmojiPickerService(
+            presenter: NativeEmojiPickerPresenter(
+                hostViewControllerProvider: { [weak self] in self?.bridge?.viewController },
+                factory: DefaultEmojiKeyboardPresentationFactory()
+            )
+        )
     }
 
     func configureForTesting(service: EmojiPickerService?) {
@@ -33,8 +38,17 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        let presentation = call.getString("presentation") ?? "auto"
-        service.present(presentation: presentation) { result in
+        let closeButtonObject = call.getObject("closeButton")
+        let options = EmojiPickerPresentOptions(
+            presentation: call.getString("presentation") ?? "auto",
+            closeButton: EmojiCloseButtonOptions(
+                size: closeButtonObject?["size"] as? String ?? "medium",
+                position: closeButtonObject?["position"] as? String ?? "right",
+                hidden: closeButtonObject?["hidden"] as? Bool ?? false
+            ),
+            dismissOnBackdropTap: call.getBool("dismissOnBackdropTap") ?? true
+        )
+        service.present(options: options) { result in
             switch result {
             case .success(let pickerResult):
                 call.resolve(["emoji": pickerResult.emoji as Any])

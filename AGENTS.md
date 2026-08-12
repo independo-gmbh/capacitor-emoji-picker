@@ -46,7 +46,6 @@
 ## Platform Notes & Safety
 - iOS builds require CocoaPods (`pod install`) and a recent Xcode; Android builds require a configured JDK/SDK and
   Gradle wrapper.
-- Platform presentation (web, Android, iOS) is implemented in follow-up issues. The web picker and the Android
-  native picker are implemented; `present()` still rejects with `NOT_IMPLEMENTED` on iOS until its follow-up issue
-  lands. On Android, `presentation: 'web'` also currently rejects with `NOT_IMPLEMENTED` (native-to-web fallback is
-  a separate follow-up issue, not yet wired up).
+- Platform presentation (web, Android, iOS) is implemented in follow-up issues. The web picker and the Android and
+  iOS native pickers are implemented. On both Android and iOS, `presentation: 'web'` currently rejects with
+  `NOT_IMPLEMENTED` (native-to-web fallback is a separate follow-up issue, not yet wired up).
