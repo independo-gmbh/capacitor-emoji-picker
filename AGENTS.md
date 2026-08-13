@@ -46,5 +46,8 @@
 ## Platform Notes & Safety
 - iOS builds require CocoaPods (`pod install`) and a recent Xcode; Android builds require a configured JDK/SDK and
   Gradle wrapper.
-- Platform presentation (web, Android, iOS) is implemented in follow-up issues; `present()` currently rejects with
-  `NOT_IMPLEMENTED` on every platform.
+- Platform presentation (web, Android, iOS) is implemented. The web picker and the Android and iOS native pickers
+  are implemented, and explicit `presentation: 'web'` on Android/iOS presents the same web bottom sheet inside the
+  app's own webview via a native<->JS bridge. `presentation: 'auto'` prefers native/system UI first and falls back
+  to the web picker on native-unavailable/presentation-failure via `DispatchingEmojiPickerPresenter` on each native
+  platform; user cancellation never triggers fallback.
