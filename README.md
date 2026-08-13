@@ -46,11 +46,16 @@ need to allow `blob:` in `connect-src`/`default-src` for this dataset to load.
 Behavior that can't be reliably simulated in automated tests (especially the iOS system emoji keyboard) has a
 manual QA checklist: see [`docs/MANUAL_QA.md`](./docs/MANUAL_QA.md).
 
-## License
+## Troubleshooting
 
-`@independo/capacitor-emoji-picker` is MIT licensed (see [`LICENSE`](./LICENSE)). Its web picker implementation
-depends on [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element) and
-[`emoji-picker-element-data`](https://github.com/nolanlawson/emoji-picker-element-data), both MIT licensed.
+### Common error codes
+
+The plugin rejects with error codes; check `error.code` (native) or `error.message` (web).
+
+| Code                  | Platform(s)       | Typical cause                                                                 |
+|------------------------|-------------------|--------------------------------------------------------------------------------|
+| `ALREADY_PRESENTING`   | iOS, Android, Web | `present()` called while a picker is already active.                          |
+| `NATIVE_UNAVAILABLE`   | iOS, Android      | The native picker UI could not be presented (e.g. no active Activity); triggers fallback to the web picker under `presentation: 'auto'`. |
 
 ## Installation
 
@@ -58,6 +63,21 @@ depends on [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-
 pnpm add @independo/capacitor-emoji-picker
 pnpm exec cap sync
 ```
+
+### Requirements
+
+- Capacitor 8+
+- iOS 15+
+- Android minSdk 24+; builds require Java 21 (recommended). `pnpm verify:android` requires a Java version supported
+  by the bundled Gradle wrapper (currently Java 21–24, with Java 21 recommended).
+
+### Compatibility
+
+Versioning follows Capacitor versioning. Major versions of the plugin are compatible with major versions of Capacitor.
+
+| Plugin Version | Capacitor Version | Status |
+|-----------------|--------------------|--------|
+| 1.*             | 8                  | Active |
 
 ## Usage
 
@@ -87,6 +107,8 @@ const { emoji } = await EmojiPicker.present({
     dismissOnBackdropTap: false,
 });
 ```
+
+---
 
 ## API
 
@@ -171,3 +193,11 @@ How the picker should be presented.
 <code>'auto' | 'web'</code>
 
 </docgen-api>
+
+---
+
+## License
+
+`@independo/capacitor-emoji-picker` is MIT licensed (see [`LICENSE`](./LICENSE)) and maintained by [Independo GmbH](https://www.independo.app/).
+
+Its web picker implementation depends on [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element) and [`emoji-picker-element-data`](https://github.com/nolanlawson/emoji-picker-element-data), both MIT licensed.
