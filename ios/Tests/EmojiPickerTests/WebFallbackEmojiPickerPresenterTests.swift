@@ -41,6 +41,17 @@ private func requestId(from js: String) -> String {
     return String(afterOpenParen.prefix(while: { $0 != "'" }))
 }
 
+private extension XCTestCase {
+    /// `WebFallbackEmojiPickerPresenter.present` hops to the main thread via `DispatchQueue.main.async`
+    /// before doing any work (evaluating JS, scheduling the timeout, registering observers) - tests
+    /// run on the main thread already, so that hop defers to the next run-loop turn. This flushes it.
+    func flushMainQueue() {
+        let expectation = expectation(description: "main queue flush")
+        DispatchQueue.main.async { expectation.fulfill() }
+        wait(for: [expectation], timeout: 1)
+    }
+}
+
 final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
     func testEvaluatesJsWithEncodedOptions() {
         let evaluator = FakeJsEvaluator()
@@ -48,6 +59,7 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
         let presenter = WebFallbackEmojiPickerPresenter(jsEvaluator: evaluator.eval, scheduler: scheduler.schedule)
 
         presenter.present(options: webOptions) { _ in }
+        flushMainQueue()
 
         XCTAssertEqual(evaluator.evaluated.count, 1)
         let js = evaluator.evaluated[0]
@@ -70,6 +82,7 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
                 expectation.fulfill()
             }
         }
+        flushMainQueue()
 
         let id = requestId(from: evaluator.evaluated[0])
         presenter.handleBridgeMessage(requestId: id, emoji: "😀", errorCode: nil)
@@ -89,6 +102,7 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
                 expectation.fulfill()
             }
         }
+        flushMainQueue()
 
         let id = requestId(from: evaluator.evaluated[0])
         presenter.handleBridgeMessage(requestId: id, emoji: nil, errorCode: ErrorCodes.notImplemented)
@@ -104,6 +118,7 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
         presenter.present(options: webOptions) { _ in
             XCTFail("should not be called for an unrelated request id")
         }
+        flushMainQueue()
 
         presenter.handleBridgeMessage(requestId: "some-other-request-id", emoji: "😀", errorCode: nil)
     }
@@ -120,6 +135,7 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
                 expectation.fulfill()
             }
         }
+        flushMainQueue()
 
         // The eval-completion callback never fires - simulating a genuine bridge-liveness failure
         // (e.g. webview torn down mid-call). This must defensively evaluate the JS dismiss call,
@@ -138,6 +154,7 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
         presenter.present(options: webOptions) { _ in
             XCTFail("should not settle just because eval completed or the timeout later fires")
         }
+        flushMainQueue()
 
         evaluator.fireEvalCompleted(0)
 
@@ -158,6 +175,7 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
                 expectation.fulfill()
             }
         }
+        flushMainQueue()
 
         let id = requestId(from: evaluator.evaluated[0])
         evaluator.fireEvalCompleted(0)
@@ -180,6 +198,7 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
                 expectation.fulfill()
             }
         }
+        flushMainQueue()
 
         let id = requestId(from: evaluator.evaluated[0])
         presenter.dismiss(requestId: id)
@@ -200,6 +219,7 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
                 expectation.fulfill()
             }
         }
+        flushMainQueue()
 
         NotificationCenter.default.post(name: UIApplication.willResignActiveNotification, object: nil)
 

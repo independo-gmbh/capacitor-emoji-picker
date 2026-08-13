@@ -32,6 +32,15 @@ final class WebFallbackEmojiPickerPresenter: EmojiPickerPresenter {
     }
 
     func present(options: EmojiPickerPresentOptions, completion: @escaping (Result<EmojiPickerResult, EmojiPickerError>) -> Void) {
+        // Capacitor plugin calls arrive on a background "bridge" queue, but `jsEvaluator` ends up
+        // calling `WKWebView.evaluateJavaScript`, a main-thread-only UI API (mirrors the
+        // unconditional hop `NativeEmojiPickerPresenter` already does for its own UIKit calls).
+        DispatchQueue.main.async { [weak self] in
+            self?.presentOnMainThread(options: options, completion: completion)
+        }
+    }
+
+    private func presentOnMainThread(options: EmojiPickerPresentOptions, completion: @escaping (Result<EmojiPickerResult, EmojiPickerError>) -> Void) {
         let requestId = UUID().uuidString
 
         // Genuine timeout - i.e. the eval-completion callback below never fired at all (extremely

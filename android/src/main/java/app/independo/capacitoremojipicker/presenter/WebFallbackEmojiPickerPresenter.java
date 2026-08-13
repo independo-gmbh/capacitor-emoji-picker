@@ -44,23 +44,39 @@ public class WebFallbackEmojiPickerPresenter implements EmojiPickerPresenter {
         void cancel(Runnable runnable);
     }
 
+    /**
+     * Hops onto the UI thread to run {@code work}. Abstracts away {@code Activity#runOnUiThread}
+     * (a {@code final} method, so it can't be overridden by a test fake {@code Activity} subclass)
+     * for tests.
+     */
+    interface UiThreadDispatcher {
+        void runOnUiThread(Activity activity, Runnable work);
+    }
+
     /** How long to wait for the JS side to report back before giving up. */
     static final long TIMEOUT_MILLIS = 3000;
 
     private final JsEvaluator jsEvaluator;
     private final ActivityProvider activityProvider;
     private final Scheduler scheduler;
+    private final UiThreadDispatcher uiThreadDispatcher;
     private final Map<String, PendingRequest> pending = new HashMap<>();
 
     public WebFallbackEmojiPickerPresenter(JsEvaluator jsEvaluator, ActivityProvider activityProvider) {
-        this(jsEvaluator, activityProvider, defaultScheduler());
+        this(jsEvaluator, activityProvider, defaultScheduler(), defaultUiThreadDispatcher());
     }
 
-    /** Package-private: lets tests inject a fake {@link Scheduler}. */
-    WebFallbackEmojiPickerPresenter(JsEvaluator jsEvaluator, ActivityProvider activityProvider, Scheduler scheduler) {
+    /** Package-private: lets tests inject a fake {@link Scheduler} and {@link UiThreadDispatcher}. */
+    WebFallbackEmojiPickerPresenter(
+        JsEvaluator jsEvaluator,
+        ActivityProvider activityProvider,
+        Scheduler scheduler,
+        UiThreadDispatcher uiThreadDispatcher
+    ) {
         this.jsEvaluator = jsEvaluator;
         this.activityProvider = activityProvider;
         this.scheduler = scheduler;
+        this.uiThreadDispatcher = uiThreadDispatcher;
     }
 
     private static Scheduler defaultScheduler() {
@@ -78,8 +94,33 @@ public class WebFallbackEmojiPickerPresenter implements EmojiPickerPresenter {
         };
     }
 
+    // Capacitor invokes @PluginMethod handlers on a background "CapacitorPlugins" thread, but
+    // Lifecycle#addObserver() is a UI-thread-only API (mirrors the same hop
+    // NativeEmojiPickerPresenter already does for its own UI-thread-only calls). Hop onto the UI
+    // thread whenever we have a real Activity to hop through; a null Activity means there's no UI
+    // to touch, so run synchronously (no Lifecycle to register against either way).
+    private static UiThreadDispatcher defaultUiThreadDispatcher() {
+        return (activity, work) -> {
+            if (activity != null) {
+                activity.runOnUiThread(work);
+            } else {
+                work.run();
+            }
+        };
+    }
+
     @Override
     public void present(String presentation, boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, EmojiPickerCallback callback) {
+        Activity activity = activityProvider.get();
+        uiThreadDispatcher.runOnUiThread(activity, () -> presentOnUiThread(activity, dismissOnBackdropTap, closeButton, callback));
+    }
+
+    private void presentOnUiThread(
+        Activity activity,
+        boolean dismissOnBackdropTap,
+        EmojiCloseButtonOptions closeButton,
+        EmojiPickerCallback callback
+    ) {
         String requestId = UUID.randomUUID().toString();
 
         // Genuine timeout - i.e. the eval-completion callback below never fired at all (extremely
@@ -94,7 +135,6 @@ public class WebFallbackEmojiPickerPresenter implements EmojiPickerPresenter {
 
         DefaultLifecycleObserver lifecycleObserver = null;
         LifecycleOwner lifecycleOwner = null;
-        Activity activity = activityProvider.get();
         if (activity instanceof LifecycleOwner) {
             lifecycleOwner = (LifecycleOwner) activity;
             lifecycleObserver = new DefaultLifecycleObserver() {
