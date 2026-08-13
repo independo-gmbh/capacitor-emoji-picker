@@ -19,20 +19,73 @@
 The `@independo/capacitor-emoji-picker` plugin presents an emoji picker on Android, iOS, and Web
 and resolves with the emoji the user selected.
 
-> **Status:** the web picker (via [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element))
-> and the Android native picker (via [`androidx.emoji2:emoji2-emojipicker`](https://developer.android.com/jetpack/androidx/releases/emoji2))
-> are implemented. iOS native presentation will be implemented in a follow-up release; until then
-> `present()` rejects with a `NOT_IMPLEMENTED` error on iOS.
+## Platform behavior
+
+With the default `presentation: 'auto'`:
+
+- **Android**: presents the AndroidX native picker (via
+  [`androidx.emoji2:emoji2-emojipicker`](https://developer.android.com/jetpack/androidx/releases/emoji2)) first.
+  If the native picker is unavailable or fails to present, falls back to the web picker rendered as a bottom sheet
+  inside the app's own WebView.
+- **iOS**: attempts a best-effort system emoji keyboard/input mode first. This relies in part on behavior Apple
+  does not document or guarantee, so it may fall back to the web picker on some OS versions/configurations. The
+  web picker is rendered as a bottom sheet inside the app's own WebView.
+- **Web**: uses the web picker (via [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element))
+  directly.
+
+Passing `presentation: 'web'` bypasses native presentation entirely and always uses the web picker, on every
+platform including Android and iOS.
+
+Native-presentation failures fall back to the web picker automatically. User cancellation (dismissing the picker
+without selecting an emoji) always resolves with `{ emoji: null }` and never triggers a fallback.
 
 The web picker self-hosts its emoji dataset as a same-origin `blob:` object URL (rather than
 fetching it from `emoji-picker-element`'s default CDN). Apps with a restrictive Content-Security-Policy
 need to allow `blob:` in `connect-src`/`default-src` for this dataset to load.
+
+Behavior that can't be reliably simulated in automated tests (especially the iOS system emoji keyboard) has a
+manual QA checklist: see [`docs/MANUAL_QA.md`](./docs/MANUAL_QA.md).
+
+## License
+
+`@independo/capacitor-emoji-picker` is MIT licensed (see [`LICENSE`](./LICENSE)). Its web picker implementation
+depends on [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element) and
+[`emoji-picker-element-data`](https://github.com/nolanlawson/emoji-picker-element-data), both MIT licensed.
 
 ## Installation
 
 ```
 pnpm add @independo/capacitor-emoji-picker
 pnpm exec cap sync
+```
+
+## Usage
+
+```typescript
+import { EmojiPicker } from '@independo/capacitor-emoji-picker';
+
+const { emoji } = await EmojiPicker.present();
+if (emoji !== null) {
+    // user selected an emoji, e.g. insert it into a text field
+    console.log(emoji);
+} else {
+    // user dismissed the picker without selecting one
+}
+```
+
+Force the web picker instead of native/system UI:
+
+```typescript
+const { emoji } = await EmojiPicker.present({ presentation: 'web' });
+```
+
+Customize the close button (iOS/web only) and backdrop-tap dismissal:
+
+```typescript
+const { emoji } = await EmojiPicker.present({
+    closeButton: { size: 'large', position: 'left' },
+    dismissOnBackdropTap: false,
+});
 ```
 
 ## API
