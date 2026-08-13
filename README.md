@@ -14,6 +14,8 @@
   <a href="https://codecov.io/gh/independo-gmbh/capacitor-emoji-picker/branch/main"><img src="https://codecov.io/gh/independo-gmbh/capacitor-emoji-picker/branch/main/graph/badge.svg" alt="Coverage Badge: main" /></a>
 </p>
 
+<p align="center">Built and maintained by <a href="https://www.independo.app/">Independo</a>.</p>
+
 ## Overview
 
 `@independo/capacitor-emoji-picker` is a Capacitor emoji picker plugin that brings a native emoji

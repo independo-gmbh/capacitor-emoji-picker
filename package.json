@@ -56,7 +56,7 @@
   "bugs": {
     "url": "https://github.com/independo-gmbh/capacitor-emoji-picker/issues"
   },
-  "homepage": "https://github.com/independo-gmbh/capacitor-emoji-picker#readme",
+  "homepage": "https://www.independo.app/",
   "scripts": {
     "upgrade": "corepack prepare pnpm@latest --activate && pnpm --recursive update",
     "build": "pnpm run clean && pnpm run docgen && tsc && rollup -c rollup.config.mjs",
