@@ -180,7 +180,11 @@ export class WebEmojiPickerPresenter {
         this.createPickerElement = options.createPickerElement ?? defaultCreatePickerElement;
     }
 
-    public async present(options: EmojiPickerOptions = {}): Promise<EmojiPickerResult> {
+    public async present(
+        options: EmojiPickerOptions = {},
+        presentOptions: { signal?: AbortSignal } = {}
+    ): Promise<EmojiPickerResult> {
+        const { signal } = presentOptions;
         const closeButtonOptions = options.closeButton ?? {};
         // A hidden close button must never leave the user with zero ways to dismiss the picker,
         // so hiding it force-enables backdrop-tap-to-dismiss regardless of what was explicitly
@@ -257,6 +261,7 @@ export class WebEmojiPickerPresenter {
                 dialog.removeEventListener('cancel', onCancel);
                 document.removeEventListener('keydown', onKeyDown);
                 closeButtonHeader?.button.removeEventListener('click', onCloseButtonClick);
+                signal?.removeEventListener('abort', onAbort);
 
                 dialog.removeAttribute('data-state');
 
@@ -300,6 +305,16 @@ export class WebEmojiPickerPresenter {
             const onCloseButtonClick = () => {
                 settle({ emoji: null });
             };
+
+            const onAbort = () => {
+                settle({ emoji: null });
+            };
+
+            if (signal?.aborted) {
+                resolve({ emoji: null });
+                return;
+            }
+            signal?.addEventListener('abort', onAbort);
 
             picker.addEventListener('emoji-click', onEmojiClick as EventListener);
             dialog.addEventListener('pointerdown', onDialogPointerDown);

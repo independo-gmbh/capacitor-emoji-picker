@@ -46,6 +46,7 @@
 ## Platform Notes & Safety
 - iOS builds require CocoaPods (`pod install`) and a recent Xcode; Android builds require a configured JDK/SDK and
   Gradle wrapper.
-- Platform presentation (web, Android, iOS) is implemented in follow-up issues. The web picker and the Android and
-  iOS native pickers are implemented. On both Android and iOS, `presentation: 'web'` currently rejects with
-  `NOT_IMPLEMENTED` (native-to-web fallback is a separate follow-up issue, not yet wired up).
+- Platform presentation (web, Android, iOS) is implemented. The web picker and the Android and iOS native pickers
+  are implemented, and explicit `presentation: 'web'` on Android/iOS presents the same web bottom sheet inside the
+  app's own webview via a native<->JS bridge. `presentation: 'auto'`'s native-fails-so-fall-back-to-web behavior
+  is a separate, still-unimplemented follow-up.

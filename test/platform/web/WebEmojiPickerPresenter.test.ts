@@ -278,4 +278,30 @@ describe('WebEmojiPickerPresenter', () => {
         await advancePastCloseAnimation();
         await resultPromise;
     });
+
+    it('settles with a null emoji when the abort signal fires', async () => {
+        const picker = createFakePicker();
+        const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+        const controller = new AbortController();
+
+        const resultPromise = presenter.present({}, { signal: controller.signal });
+        await flush();
+        controller.abort();
+        await advancePastCloseAnimation();
+
+        await expect(resultPromise).resolves.toEqual({ emoji: null });
+        expect(dialogCount()).toBe(0);
+    });
+
+    it('never opens the dialog when the signal is already aborted', async () => {
+        const picker = createFakePicker();
+        const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+        const controller = new AbortController();
+        controller.abort();
+
+        const result = await presenter.present({}, { signal: controller.signal });
+
+        expect(result).toEqual({ emoji: null });
+        expect(dialogCount()).toBe(0);
+    });
 });

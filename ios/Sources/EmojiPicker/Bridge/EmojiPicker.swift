@@ -1,5 +1,6 @@
 import Foundation
 import Capacitor
+import WebKit
 
 /// Capacitor bridge for the EmojiPicker plugin.
 @objc(EmojiPicker)
@@ -15,15 +16,31 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
 
     /// Service layer that owns presentation flow and concurrency guarding.
     private var service: EmojiPickerService?
+    /// Retained so it isn't deallocated out from under the `WKUserContentController`.
+    private var scriptMessageHandler: EmojiPickerScriptMessageHandler?
+
+    private static let validCloseButtonSizes: Set<String> = ["xSmall", "small", "medium", "large"]
+    private static let validCloseButtonPositions: Set<String> = ["left", "center", "right"]
 
     /// Initializes dependencies after the plugin loads.
     public override func load() {
         super.load()
+        let nativePresenter = NativeEmojiPickerPresenter(
+            hostViewControllerProvider: { [weak self] in self?.bridge?.viewController },
+            factory: DefaultEmojiKeyboardPresentationFactory()
+        )
+        let webFallbackPresenter = WebFallbackEmojiPickerPresenter(jsEvaluator: { [weak self] js, completion in
+            self?.bridge?.webView?.evaluateJavaScript(js) { _, _ in completion() }
+        })
+        let handler = EmojiPickerScriptMessageHandler(presenter: webFallbackPresenter)
+        scriptMessageHandler = handler
+        // Safe no-op if none was registered yet; guards against an ObjC exception ("handler with
+        // name already exists") if load() ever ran more than once per plugin instance.
+        bridge?.webView?.configuration.userContentController.removeScriptMessageHandler(forName: "capacitorEmojiPickerBridge")
+        bridge?.webView?.configuration.userContentController.add(handler, name: "capacitorEmojiPickerBridge")
+
         service = EmojiPickerService(
-            presenter: NativeEmojiPickerPresenter(
-                hostViewControllerProvider: { [weak self] in self?.bridge?.viewController },
-                factory: DefaultEmojiKeyboardPresentationFactory()
-            )
+            presenter: DispatchingEmojiPickerPresenter(nativePresenter: nativePresenter, webFallbackPresenter: webFallbackPresenter)
         )
     }
 
@@ -39,11 +56,13 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
         }
 
         let closeButtonObject = call.getObject("closeButton")
+        let size = closeButtonObject?["size"] as? String ?? "medium"
+        let position = closeButtonObject?["position"] as? String ?? "right"
         let options = EmojiPickerPresentOptions(
             presentation: call.getString("presentation") ?? "auto",
             closeButton: EmojiCloseButtonOptions(
-                size: closeButtonObject?["size"] as? String ?? "medium",
-                position: closeButtonObject?["position"] as? String ?? "right",
+                size: Self.validCloseButtonSizes.contains(size) ? size : "medium",
+                position: Self.validCloseButtonPositions.contains(position) ? position : "right",
                 hidden: closeButtonObject?["hidden"] as? Bool ?? false
             ),
             dismissOnBackdropTap: call.getBool("dismissOnBackdropTap") ?? true
