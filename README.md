@@ -24,6 +24,19 @@ on top of it (Angular, React, Vue, or vanilla JS/TS).
 Call `present()` and it resolves with the emoji the user selected: native/system UI first, with an
 automatic fallback to the web picker when native presentation isn't available.
 
+<table>
+  <tr>
+    <th align="center">iOS</th>
+    <th align="center">Android</th>
+    <th align="center">Web</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="./docs/media/demo-ios.gif" alt="iOS system emoji keyboard demo" width="220" /></td>
+    <td align="center"><img src="./docs/media/demo-android.gif" alt="Android native emoji picker demo" width="220" /></td>
+    <td align="center"><img src="./docs/media/demo-web.gif" alt="Web emoji picker demo" width="220" /></td>
+  </tr>
+</table>
+
 ## Installation
 
 ```
