@@ -3,6 +3,7 @@ package app.independo.capacitoremojipicker.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import app.independo.capacitoremojipicker.core.EmojiCloseButtonOptions;
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 import app.independo.capacitoremojipicker.core.EmojiPickerResult;
 import app.independo.capacitoremojipicker.core.ErrorCodes;
@@ -16,7 +17,7 @@ public class EmojiPickerServiceTest {
         EmojiPickerCallback capturedCallback;
 
         @Override
-        public void present(String presentation, boolean dismissOnBackdropTap, EmojiPickerCallback callback) {
+        public void present(String presentation, boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, EmojiPickerCallback callback) {
             this.capturedCallback = callback;
         }
     }
@@ -26,7 +27,7 @@ public class EmojiPickerServiceTest {
         PendingPresenter presenter = new PendingPresenter();
         EmojiPickerService service = new EmojiPickerService(presenter);
 
-        service.present("auto", true, new EmojiPickerCallback() {
+        service.present("auto", true, null, new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 
@@ -35,7 +36,7 @@ public class EmojiPickerServiceTest {
         });
 
         String[] secondCallErrorCode = new String[1];
-        service.present("auto", true, new EmojiPickerCallback() {
+        service.present("auto", true, null, new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 
@@ -54,7 +55,7 @@ public class EmojiPickerServiceTest {
         EmojiPickerService service = new EmojiPickerService(presenter);
 
         String[] firstResultEmoji = new String[1];
-        service.present("auto", true, new EmojiPickerCallback() {
+        service.present("auto", true, null, new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {
                 firstResultEmoji[0] = result.getEmoji();
@@ -68,7 +69,7 @@ public class EmojiPickerServiceTest {
         assertEquals("😀", firstResultEmoji[0]);
 
         String[] secondErrorCode = new String[1];
-        service.present("auto", true, new EmojiPickerCallback() {
+        service.present("auto", true, null, new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 

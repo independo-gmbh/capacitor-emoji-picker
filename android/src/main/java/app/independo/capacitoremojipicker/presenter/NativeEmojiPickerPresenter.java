@@ -3,6 +3,7 @@ package app.independo.capacitoremojipicker.presenter;
 import android.app.Activity;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
+import app.independo.capacitoremojipicker.core.EmojiCloseButtonOptions;
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 import app.independo.capacitoremojipicker.core.EmojiPickerResult;
 import app.independo.capacitoremojipicker.core.ErrorCodes;
@@ -58,7 +59,7 @@ public class NativeEmojiPickerPresenter implements EmojiPickerPresenter {
     }
 
     @Override
-    public void present(String presentation, boolean dismissOnBackdropTap, EmojiPickerCallback callback) {
+    public void present(String presentation, boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, EmojiPickerCallback callback) {
         if (!"auto".equals(presentation)) {
             // 'web' (and any future non-native presentation) isn't implemented on Android yet;
             // honestly reject rather than silently showing the native picker instead.

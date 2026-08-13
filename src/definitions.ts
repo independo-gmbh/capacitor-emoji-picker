@@ -15,23 +15,23 @@ export interface EmojiPickerOptions {
      */
     presentation?: EmojiPickerPresentation;
     /**
-     * Configures the close button the iOS native presentation renders above its keyboard (there's
-     * no system-provided one). Ignored on Android and web.
+     * Configures the close button rendered above the iOS keyboard/the web picker sheet (iOS has
+     * no system-provided one). Ignored on Android.
      */
     closeButton?: EmojiPickerCloseButtonOptions;
     /**
      * Dismiss the picker when the user taps the transparent area outside the keyboard/button (iOS)
-     * or the scrim outside the picker sheet (Android). Ignored on web.
+     * or the scrim outside the picker sheet (Android and web).
      *
-     * On iOS, if `closeButton.hidden` is `true`, this is treated as `true` regardless of the value
-     * passed here, so the user always has a way to dismiss the keyboard.
+     * On iOS and web, if `closeButton.hidden` is `true`, this is treated as `true` regardless of
+     * the value passed here, so the user always has a way to dismiss the picker.
      * @default true
      */
     dismissOnBackdropTap?: boolean;
 }
 
 /**
- * Configures the close button rendered above the iOS native emoji keyboard.
+ * Configures the close button rendered above the iOS native emoji keyboard/the web picker sheet.
  */
 export interface EmojiPickerCloseButtonOptions {
     /**

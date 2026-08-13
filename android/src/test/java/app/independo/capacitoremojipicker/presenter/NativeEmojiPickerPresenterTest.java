@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import app.independo.capacitoremojipicker.core.EmojiCloseButtonOptions;
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 import app.independo.capacitoremojipicker.core.EmojiPickerResult;
 import app.independo.capacitoremojipicker.core.ErrorCodes;
@@ -88,7 +89,7 @@ public class NativeEmojiPickerPresenterTest {
         NativeEmojiPickerPresenter presenter = new NativeEmojiPickerPresenter(() -> null, factory);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("auto", true, callback);
+        presenter.present("auto", true, null, callback);
 
         assertEquals(ErrorCodes.NATIVE_UNAVAILABLE, callback.errorCode);
         assertEquals(0, factory.createCount);
@@ -104,7 +105,7 @@ public class NativeEmojiPickerPresenterTest {
         );
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("auto", true, callback);
+        presenter.present("auto", true, null, callback);
         factory.capturedListener.onEmojiSelected("😀");
         factory.capturedListener.onDismissed();
 
@@ -122,7 +123,7 @@ public class NativeEmojiPickerPresenterTest {
         );
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("auto", true, callback);
+        presenter.present("auto", true, null, callback);
         factory.capturedListener.onDismissed();
 
         assertEquals(1, callback.callCount);
@@ -139,7 +140,7 @@ public class NativeEmojiPickerPresenterTest {
         );
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("auto", true, callback);
+        presenter.present("auto", true, null, callback);
         factory.capturedListener.onDismissed();
         factory.capturedListener.onDismissed();
 
@@ -158,12 +159,12 @@ public class NativeEmojiPickerPresenterTest {
         CapturingCallback firstCallback = new CapturingCallback();
         CapturingCallback secondCallback = new CapturingCallback();
 
-        presenter.present("auto", true, firstCallback);
+        presenter.present("auto", true, null, firstCallback);
         FakeDialogHandle firstHandle = factory.lastHandle;
         EmojiPickerDialogFactory.Listener firstListener = factory.capturedListener;
         assertFalse(firstHandle.dismissed);
 
-        presenter.present("auto", true, secondCallback);
+        presenter.present("auto", true, null, secondCallback);
         FakeDialogHandle secondHandle = factory.lastHandle;
 
         assertTrue(firstHandle.dismissed);
@@ -202,7 +203,7 @@ public class NativeEmojiPickerPresenterTest {
         );
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, callback);
+        presenter.present("web", true, null, callback);
 
         assertEquals(ErrorCodes.NOT_IMPLEMENTED, callback.errorCode);
         assertEquals(1, callback.callCount);
@@ -221,7 +222,7 @@ public class NativeEmojiPickerPresenterTest {
         );
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("auto", true, callback);
+        presenter.present("auto", true, null, callback);
 
         assertEquals(ErrorCodes.NATIVE_UNAVAILABLE, callback.errorCode);
         assertEquals(1, callback.callCount);
@@ -230,7 +231,7 @@ public class NativeEmojiPickerPresenterTest {
         // failed attempt.
         factory.createThrows = null;
         CapturingCallback secondCallback = new CapturingCallback();
-        presenter.present("auto", true, secondCallback);
+        presenter.present("auto", true, null, secondCallback);
         factory.capturedListener.onEmojiSelected("😀");
 
         assertEquals(1, secondCallback.callCount);
