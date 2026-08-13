@@ -12,7 +12,7 @@
     "type": "git",
     "url": "https://github.com/independo-gmbh/capacitor-emoji-picker.git"
   },
-  "description": "Capacitor plugin for presenting an emoji picker",
+  "description": "Emoji picker plugin for Capacitor 8 with native Android support, iOS system emoji keyboard integration, and a web fallback.",
   "version": "0.0.1",
   "packageManager": "pnpm@11.8.0",
   "devDependencies": {
@@ -56,6 +56,7 @@
   "bugs": {
     "url": "https://github.com/independo-gmbh/capacitor-emoji-picker/issues"
   },
+  "homepage": "https://github.com/independo-gmbh/capacitor-emoji-picker#readme",
   "scripts": {
     "upgrade": "corepack prepare pnpm@latest --activate && pnpm --recursive update",
     "build": "pnpm run clean && pnpm run docgen && tsc && rollup -c rollup.config.mjs",
@@ -84,13 +85,18 @@
   "license": "MIT",
   "keywords": [
     "capacitor",
+    "capacitor-plugin",
     "plugin",
     "native",
     "emoji",
     "emoji-picker",
+    "native-emoji-picker",
+    "emoji-keyboard",
+    "ionic",
     "unicode",
     "ios",
-    "android"
+    "android",
+    "web"
   ],
   "publishConfig": {
     "provenance": true,

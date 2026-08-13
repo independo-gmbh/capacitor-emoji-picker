@@ -1,9 +1,9 @@
 <p align="center">
   <img src="https://user-images.githubusercontent.com/236501/85893648-1c92e880-b7a8-11ea-926d-95355b8175c7.png" width="128" height="128" alt="CapacitorJS Logo" />
 </p>
-<h3 align="center">Capacitor Emoji Picker</h3>
+<h3 align="center">Capacitor Emoji Picker for iOS, Android & Web</h3>
 <p align="center"><strong><code>@independo/capacitor-emoji-picker</code></strong></p>
-<p align="center">Capacitor plugin for presenting an emoji picker</p>
+<p align="center">Emoji picker plugin for Capacitor 8 with native Android support, iOS system emoji keyboard integration, and a web fallback.</p>
 
 <p align="center">
   <img src="https://img.shields.io/maintenance/yes/2026" alt="Maintenance Badge: until 2026" />
@@ -16,46 +16,13 @@
 
 ## Overview
 
-The `@independo/capacitor-emoji-picker` plugin presents an emoji picker on Android, iOS, and Web
-and resolves with the emoji the user selected.
+`@independo/capacitor-emoji-picker` is a Capacitor emoji picker plugin that brings a native emoji
+picker to Android, a Capacitor emoji keyboard experience via the iOS system emoji keyboard, and a
+web emoji picker fallback everywhere else — one API for Capacitor 8, Ionic, and any framework built
+on top of it (Angular, React, Vue, or vanilla JS/TS).
 
-## Platform behavior
-
-With the default `presentation: 'auto'`:
-
-- **Android**: presents the AndroidX native picker (via
-  [`androidx.emoji2:emoji2-emojipicker`](https://developer.android.com/jetpack/androidx/releases/emoji2)) first.
-  If the native picker is unavailable or fails to present, falls back to the web picker rendered as a bottom sheet
-  inside the app's own WebView.
-- **iOS**: attempts a best-effort system emoji keyboard/input mode first. This relies in part on behavior Apple
-  does not document or guarantee, so it may fall back to the web picker on some OS versions/configurations. The
-  web picker is rendered as a bottom sheet inside the app's own WebView.
-- **Web**: uses the web picker (via [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element))
-  directly.
-
-Passing `presentation: 'web'` bypasses native presentation entirely and always uses the web picker, on every
-platform including Android and iOS.
-
-Native-presentation failures fall back to the web picker automatically. User cancellation (dismissing the picker
-without selecting an emoji) always resolves with `{ emoji: null }` and never triggers a fallback.
-
-The web picker self-hosts its emoji dataset as a same-origin `blob:` object URL (rather than
-fetching it from `emoji-picker-element`'s default CDN). Apps with a restrictive Content-Security-Policy
-need to allow `blob:` in `connect-src`/`default-src` for this dataset to load.
-
-Behavior that can't be reliably simulated in automated tests (especially the iOS system emoji keyboard) has a
-manual QA checklist: see [`docs/MANUAL_QA.md`](./docs/MANUAL_QA.md).
-
-## Troubleshooting
-
-### Common error codes
-
-The plugin rejects with error codes; check `error.code` (native) or `error.message` (web).
-
-| Code                  | Platform(s)       | Typical cause                                                                 |
-|------------------------|-------------------|--------------------------------------------------------------------------------|
-| `ALREADY_PRESENTING`   | iOS, Android, Web | `present()` called while a picker is already active.                          |
-| `NATIVE_UNAVAILABLE`   | iOS, Android      | The native picker UI could not be presented (e.g. no active Activity); triggers fallback to the web picker under `presentation: 'auto'`. |
+Call `present()` and it resolves with the emoji the user selected: native/system UI first, with an
+automatic fallback to the web picker when native presentation isn't available.
 
 ## Installation
 
@@ -107,6 +74,44 @@ const { emoji } = await EmojiPicker.present({
     dismissOnBackdropTap: false,
 });
 ```
+
+## Platform behavior
+
+With the default `presentation: 'auto'`:
+
+- **Android**: presents the AndroidX native picker (via
+  [`androidx.emoji2:emoji2-emojipicker`](https://developer.android.com/jetpack/androidx/releases/emoji2)) first.
+  If the native picker is unavailable or fails to present, falls back to the web picker rendered as a bottom sheet
+  inside the app's own WebView.
+- **iOS**: attempts a best-effort system emoji keyboard/input mode first. This relies in part on behavior Apple
+  does not document or guarantee, so it may fall back to the web picker on some OS versions/configurations. The
+  web picker is rendered as a bottom sheet inside the app's own WebView.
+- **Web**: uses the web picker (via [`emoji-picker-element`](https://github.com/nolanlawson/emoji-picker-element))
+  directly.
+
+Passing `presentation: 'web'` bypasses native presentation entirely and always uses the web picker, on every
+platform including Android and iOS.
+
+Native-presentation failures fall back to the web picker automatically. User cancellation (dismissing the picker
+without selecting an emoji) always resolves with `{ emoji: null }` and never triggers a fallback.
+
+The web picker self-hosts its emoji dataset as a same-origin `blob:` object URL (rather than
+fetching it from `emoji-picker-element`'s default CDN). Apps with a restrictive Content-Security-Policy
+need to allow `blob:` in `connect-src`/`default-src` for this dataset to load.
+
+Behavior that can't be reliably simulated in automated tests (especially the iOS system emoji keyboard) has a
+manual QA checklist: see [`docs/MANUAL_QA.md`](./docs/MANUAL_QA.md).
+
+## Troubleshooting
+
+### Common error codes
+
+The plugin rejects with error codes; check `error.code` (native) or `error.message` (web).
+
+| Code                  | Platform(s)       | Typical cause                                                                 |
+|------------------------|-------------------|--------------------------------------------------------------------------------|
+| `ALREADY_PRESENTING`   | iOS, Android, Web | `present()` called while a picker is already active.                          |
+| `NATIVE_UNAVAILABLE`   | iOS, Android      | The native picker UI could not be presented (e.g. no active Activity); triggers fallback to the web picker under `presentation: 'auto'`. |
 
 ---
 
