@@ -19,8 +19,14 @@ public class DispatchingEmojiPickerPresenter implements EmojiPickerPresenter {
     }
 
     @Override
-    public void present(String presentation, boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, EmojiPickerCallback callback) {
+    public void present(
+        String presentation,
+        boolean dismissOnBackdropTap,
+        EmojiCloseButtonOptions closeButton,
+        String theme,
+        EmojiPickerCallback callback
+    ) {
         EmojiPickerPresenter target = "web".equals(presentation) ? webFallbackPresenter : nativePresenter;
-        target.present(presentation, dismissOnBackdropTap, closeButton, callback);
+        target.present(presentation, dismissOnBackdropTap, closeButton, theme, callback);
     }
 }

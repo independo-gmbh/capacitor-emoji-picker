@@ -18,6 +18,8 @@ struct EmojiPickerPresentOptions {
     let closeButton: EmojiCloseButtonOptions
     /// Only consulted by presenters that render a close affordance; ignored elsewhere.
     let dismissOnBackdropTap: Bool
+    /// `"system"`, `"light"`, or `"dark"`.
+    let theme: String
 }
 
 /// Performs the platform-specific presentation.

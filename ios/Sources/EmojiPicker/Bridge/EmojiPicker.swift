@@ -21,6 +21,7 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
 
     private static let validCloseButtonSizes: Set<String> = ["xSmall", "small", "medium", "large"]
     private static let validCloseButtonPositions: Set<String> = ["left", "center", "right"]
+    private static let validThemes: Set<String> = ["system", "light", "dark"]
 
     /// Initializes dependencies after the plugin loads.
     public override func load() {
@@ -58,6 +59,7 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
         let closeButtonObject = call.getObject("closeButton")
         let size = closeButtonObject?["size"] as? String ?? "medium"
         let position = closeButtonObject?["position"] as? String ?? "right"
+        let theme = call.getString("theme") ?? "system"
         let options = EmojiPickerPresentOptions(
             presentation: call.getString("presentation") ?? "auto",
             closeButton: EmojiCloseButtonOptions(
@@ -65,7 +67,8 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
                 position: Self.validCloseButtonPositions.contains(position) ? position : "right",
                 hidden: closeButtonObject?["hidden"] as? Bool ?? false
             ),
-            dismissOnBackdropTap: call.getBool("dismissOnBackdropTap") ?? true
+            dismissOnBackdropTap: call.getBool("dismissOnBackdropTap") ?? true,
+            theme: Self.validThemes.contains(theme) ? theme : "system"
         )
         service.present(options: options) { result in
             switch result {

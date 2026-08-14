@@ -14,6 +14,7 @@ protocol EmojiKeyboardPresentationFactory {
         hostViewController: UIViewController,
         closeButtonOptions: EmojiCloseButtonOptions,
         dismissOnBackdropTap: Bool,
+        theme: String,
         listener: EmojiKeyboardPresentationListener
     ) -> EmojiKeyboardPresentationHandle
 }

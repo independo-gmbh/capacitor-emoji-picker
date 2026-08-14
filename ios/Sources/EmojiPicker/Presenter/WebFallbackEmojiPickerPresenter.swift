@@ -65,7 +65,11 @@ final class WebFallbackEmojiPickerPresenter: EmojiPickerPresenter {
 
         pending[requestId] = PendingRequest(completion: completion, resignActiveObserver: resignActiveObserver)
 
-        let json = Self.encodeOptionsJson(dismissOnBackdropTap: options.dismissOnBackdropTap, closeButton: options.closeButton)
+        let json = Self.encodeOptionsJson(
+            dismissOnBackdropTap: options.dismissOnBackdropTap,
+            closeButton: options.closeButton,
+            theme: options.theme
+        )
         // The eval "completion" here only means the script at least started executing (i.e. the
         // bridge/webview is alive) - it cancels the timeout WITHOUT settling the request, which
         // stays pending for the real result reported later via handleBridgeMessage.
@@ -107,11 +111,11 @@ final class WebFallbackEmojiPickerPresenter: EmojiPickerPresenter {
         }
     }
 
-    /// Hand-rolled instead of `JSONSerialization`: `size`/`position` are always one of a small
-    /// fixed set of ASCII enum values validated/defaulted when the plugin call is parsed, never
-    /// arbitrary user text, so plain string interpolation is safe here.
-    private static func encodeOptionsJson(dismissOnBackdropTap: Bool, closeButton: EmojiCloseButtonOptions) -> String {
-        "{\"dismissOnBackdropTap\":\(dismissOnBackdropTap),\"closeButton\":{\"size\":\"\(closeButton.size)\",\"position\":\"\(closeButton.position)\",\"hidden\":\(closeButton.hidden)}}"
+    /// Hand-rolled instead of `JSONSerialization`: `size`/`position`/`theme` are always one of a
+    /// small fixed set of ASCII enum values validated/defaulted when the plugin call is parsed,
+    /// never arbitrary user text, so plain string interpolation is safe here.
+    private static func encodeOptionsJson(dismissOnBackdropTap: Bool, closeButton: EmojiCloseButtonOptions, theme: String) -> String {
+        "{\"dismissOnBackdropTap\":\(dismissOnBackdropTap),\"closeButton\":{\"size\":\"\(closeButton.size)\",\"position\":\"\(closeButton.position)\",\"hidden\":\(closeButton.hidden)},\"theme\":\"\(theme)\"}"
     }
 
     private struct PendingRequest {

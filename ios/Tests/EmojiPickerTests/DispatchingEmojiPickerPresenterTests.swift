@@ -20,7 +20,7 @@ final class DispatchingEmojiPickerPresenterTests: XCTestCase {
         let webFallbackPresenter = RecordingPresenter()
         let dispatcher = DispatchingEmojiPickerPresenter(nativePresenter: nativePresenter, webFallbackPresenter: webFallbackPresenter)
 
-        let options = EmojiPickerPresentOptions(presentation: "auto", closeButton: closeButton, dismissOnBackdropTap: true)
+        let options = EmojiPickerPresentOptions(presentation: "auto", closeButton: closeButton, dismissOnBackdropTap: true, theme: "system")
         dispatcher.present(options: options) { _ in }
 
         XCTAssertEqual(nativePresenter.callCount, 1)
@@ -32,7 +32,7 @@ final class DispatchingEmojiPickerPresenterTests: XCTestCase {
         let webFallbackPresenter = RecordingPresenter()
         let dispatcher = DispatchingEmojiPickerPresenter(nativePresenter: nativePresenter, webFallbackPresenter: webFallbackPresenter)
 
-        let options = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, dismissOnBackdropTap: true)
+        let options = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, dismissOnBackdropTap: true, theme: "system")
         dispatcher.present(options: options) { _ in }
 
         XCTAssertEqual(nativePresenter.callCount, 0)

@@ -1,5 +1,10 @@
 import { ErrorCodes } from '../../core/error-codes';
-import type { EmojiPickerCloseButtonOptions, EmojiPickerOptions, EmojiPickerResult } from '../../definitions';
+import type {
+    EmojiPickerCloseButtonOptions,
+    EmojiPickerOptions,
+    EmojiPickerResult,
+    EmojiPickerTheme,
+} from '../../definitions';
 import { getBundledEmojiDataSourceUrl } from './emoji-data-source';
 
 /** Minimal shape of the `<emoji-picker>` custom element this presenter depends on. */
@@ -58,13 +63,30 @@ function ensureSheetStylesInjected(): void {
                 max(0.5rem, env(safe-area-inset-left, 0px));
             border: none;
             border-radius: 1rem 1rem 0 0;
-            background-color: Canvas;
             overflow: hidden;
             transform: translateY(100%);
             transition: transform ${ANIMATION_MS}ms ease-out;
         }
+        /*
+         * Explicit colors rather than the \`Canvas\`/\`CanvasText\` system-color keywords: those rely
+         * on the UA knowing the page's color-scheme, which isn't reliably signaled inside a
+         * Capacitor WKWebView, so they were silently staying light-only regardless of the resolved
+         * theme. Values match emoji-picker-element's own light/dark defaults so the seam between
+         * the sheet chrome and the picker itself stays invisible.
+         */
+        dialog.emoji-picker-sheet--light {
+            background-color: #fff;
+            color: #1f1f1f;
+        }
+        dialog.emoji-picker-sheet--dark {
+            background-color: #222;
+            color: #e8e8e8;
+        }
         dialog.emoji-picker-sheet::backdrop {
             background: rgba(0, 0, 0, 0.4);
+        }
+        dialog.emoji-picker-sheet--dark::backdrop {
+            background: rgba(0, 0, 0, 0.6);
         }
         dialog.emoji-picker-sheet[data-state='open'] {
             transform: translateY(0);
@@ -85,6 +107,9 @@ function ensureSheetStylesInjected(): void {
             padding: 0;
             cursor: pointer;
         }
+        dialog.emoji-picker-sheet--dark .emoji-picker-sheet__close {
+            background: rgba(255, 255, 255, 0.12);
+        }
         @media (prefers-reduced-motion: reduce) {
             dialog.emoji-picker-sheet {
                 transition: none;
@@ -97,6 +122,25 @@ function ensureSheetStylesInjected(): void {
 function prefersReducedMotion(): boolean {
     return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
+
+/** Resolves `system` to the OS's current light/dark preference; passes explicit themes through. */
+function resolveTheme(theme: EmojiPickerTheme | undefined): 'light' | 'dark' {
+    if (theme === 'light' || theme === 'dark') {
+        return theme;
+    }
+    const prefersDark = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return prefersDark ? 'dark' : 'light';
+}
+
+/**
+ * Matches the sheet's own `--light`/`--dark` background colors (see `ensureSheetStylesInjected`).
+ * Set explicitly, rather than the `Canvas` system-color keyword, for the same WKWebView
+ * color-scheme-detection reason documented there.
+ */
+const SHEET_BACKGROUND_COLOR: Record<'light' | 'dark', string> = {
+    light: '#fff',
+    dark: '#222',
+};
 
 const CLOSE_BUTTON_SIZE_PX: Record<NonNullable<EmojiPickerCloseButtonOptions['size']>, number> = {
     xSmall: 24,
@@ -191,14 +235,16 @@ export class WebEmojiPickerPresenter {
         // requested (mirrors the iOS presenter's `effectiveDismissOnBackdropTap`).
         const dismissOnBackdropTap = (options.dismissOnBackdropTap ?? true) || (closeButtonOptions.hidden ?? false);
 
+        // Resolved once at open time (rather than left to each side's own live
+        // `prefers-color-scheme` tracking) so the picker and the sheet chrome around it always
+        // agree, fixing the mismatch from issue #19.
+        const resolvedTheme = resolveTheme(options.theme);
+
         let picker: EmojiPickerElement;
         try {
             picker = await this.createPickerElement();
             picker.dataSource = getBundledEmojiDataSourceUrl();
-            // The sheet chrome around the picker doesn't yet adapt to dark mode (issue #19), so
-            // force the picker to light mode too rather than let it auto-follow
-            // `prefers-color-scheme` on its own and visually mismatch the chrome.
-            picker.classList.add('light');
+            picker.classList.add(resolvedTheme);
         } catch {
             throw new Error(ErrorCodes.NOT_IMPLEMENTED);
         }
@@ -212,11 +258,11 @@ export class WebEmojiPickerPresenter {
         // The picker's own card look (border + background) would otherwise float as a visibly
         // smaller box inside the sheet; matching its background to the sheet's and dropping its
         // border makes it read as full width, part of the sheet rather than nested inside it.
-        picker.style.setProperty('--background', 'Canvas');
+        picker.style.setProperty('--background', SHEET_BACKGROUND_COLOR[resolvedTheme]);
         picker.style.setProperty('--border-size', '0');
 
         const dialog = document.createElement('dialog');
-        dialog.className = 'emoji-picker-sheet';
+        dialog.className = `emoji-picker-sheet emoji-picker-sheet--${resolvedTheme}`;
         dialog.setAttribute('role', 'dialog');
         dialog.setAttribute('aria-modal', 'true');
         dialog.setAttribute('aria-label', 'Emoji picker');

@@ -33,3 +33,13 @@ ignore:
   - "**/*.generated.*"
   - "android/**/build/**"
   - "ios/**/build/**"
+  # Capacitor bridge plugin entry points: require a real PluginCall/Bridge to exercise, which the
+  # project deliberately doesn't construct in unit tests (see EmojiPickerService/EmojiPickerPresenter's
+  # own separation-of-concerns rationale) - covered by the CI "Build Example App"/native verification
+  # jobs instead, not unit tests.
+  - "android/src/main/java/app/independo/capacitoremojipicker/EmojiPicker.java"
+  - "ios/Sources/EmojiPicker/Bridge/EmojiPicker.swift"
+  # Constructs a real Activity-backed BottomSheetDialog/EmojiPickerView; deliberately isolated
+  # behind EmojiPickerDialogFactory precisely so NativeEmojiPickerPresenter's own logic can be
+  # unit-tested with a fake instead of this real-framework construction.
+  - "android/src/main/java/app/independo/capacitoremojipicker/presenter/DefaultEmojiPickerDialogFactory.java"

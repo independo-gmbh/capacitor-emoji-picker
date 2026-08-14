@@ -27,6 +27,7 @@ public class EmojiPicker extends Plugin {
         new HashSet<>(Arrays.asList("xSmall", "small", "medium", "large"));
     private static final Set<String> VALID_CLOSE_BUTTON_POSITIONS =
         new HashSet<>(Arrays.asList("left", "center", "right"));
+    private static final Set<String> VALID_THEMES = new HashSet<>(Arrays.asList("system", "light", "dark"));
 
     /** Service layer that owns presentation flow and concurrency guarding. */
     private EmojiPickerService service;
@@ -60,10 +61,12 @@ public class EmojiPicker extends Plugin {
             VALID_CLOSE_BUTTON_POSITIONS.contains(position) ? position : "right",
             closeButtonObject != null && closeButtonObject.optBoolean("hidden", false)
         );
+        String theme = call.getString("theme", "system");
         service.present(
             presentation,
             dismissOnBackdropTap,
             closeButton,
+            VALID_THEMES.contains(theme) ? theme : "system",
             new EmojiPickerCallback() {
                 @Override
                 public void onResult(EmojiPickerResult result) {

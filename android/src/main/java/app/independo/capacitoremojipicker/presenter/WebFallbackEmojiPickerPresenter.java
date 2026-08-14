@@ -110,15 +110,25 @@ public class WebFallbackEmojiPickerPresenter implements EmojiPickerPresenter {
     }
 
     @Override
-    public void present(String presentation, boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, EmojiPickerCallback callback) {
+    public void present(
+        String presentation,
+        boolean dismissOnBackdropTap,
+        EmojiCloseButtonOptions closeButton,
+        String theme,
+        EmojiPickerCallback callback
+    ) {
         Activity activity = activityProvider.get();
-        uiThreadDispatcher.runOnUiThread(activity, () -> presentOnUiThread(activity, dismissOnBackdropTap, closeButton, callback));
+        uiThreadDispatcher.runOnUiThread(
+            activity,
+            () -> presentOnUiThread(activity, dismissOnBackdropTap, closeButton, theme, callback)
+        );
     }
 
     private void presentOnUiThread(
         Activity activity,
         boolean dismissOnBackdropTap,
         EmojiCloseButtonOptions closeButton,
+        String theme,
         EmojiPickerCallback callback
     ) {
         String requestId = UUID.randomUUID().toString();
@@ -158,7 +168,8 @@ public class WebFallbackEmojiPickerPresenter implements EmojiPickerPresenter {
         // bridge/webview is alive) - it cancels the timeout WITHOUT settling the request, which
         // stays pending for the real result reported later via onWebResult.
         jsEvaluator.eval(
-            "window.__CapacitorEmojiPickerPresentWeb('" + requestId + "', '" + encodeOptionsBase64Free(dismissOnBackdropTap, closeButton) + "')",
+            "window.__CapacitorEmojiPickerPresentWeb('" + requestId + "', '"
+                + encodeOptionsBase64Free(dismissOnBackdropTap, closeButton, theme) + "')",
             () -> scheduler.cancel(timeoutRunnable)
         );
     }
@@ -191,20 +202,22 @@ public class WebFallbackEmojiPickerPresenter implements EmojiPickerPresenter {
     }
 
     /**
-     * Hand-rolled instead of a JSON library: `size`/`position` are always one of a small fixed
-     * set of ASCII enum values validated/defaulted in {@code EmojiPicker#present}, never
+     * Hand-rolled instead of a JSON library: `size`/`position`/`theme` are always one of a small
+     * fixed set of ASCII enum values validated/defaulted in {@code EmojiPicker#present}, never
      * arbitrary user text, so plain string interpolation is safe here. This also sidesteps
      * `org.json`/`android.util.Base64` throwing under the mockable `android.jar` in plain JUnit
      * unit tests (see the plan's Global Constraints).
      */
-    private static String encodeOptionsBase64Free(boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton) {
+    private static String encodeOptionsBase64Free(boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, String theme) {
         return "{"
             + "\"dismissOnBackdropTap\":" + dismissOnBackdropTap + ","
             + "\"closeButton\":{"
             + "\"size\":\"" + closeButton.size + "\","
             + "\"position\":\"" + closeButton.position + "\","
             + "\"hidden\":" + closeButton.hidden
-            + "}}";
+            + "},"
+            + "\"theme\":\"" + theme + "\""
+            + "}";
     }
 
     private static final class PendingRequest {
