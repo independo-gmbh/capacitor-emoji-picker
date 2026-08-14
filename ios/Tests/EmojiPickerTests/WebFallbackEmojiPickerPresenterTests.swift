@@ -3,7 +3,7 @@ import XCTest
 @testable import EmojiPicker
 
 private let closeButton = EmojiCloseButtonOptions(size: "medium", position: "right", hidden: false)
-private let webOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, dismissOnBackdropTap: true)
+private let webOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, dismissOnBackdropTap: true, theme: "system")
 
 /// Captures every script evaluated instead of touching a real `WKWebView`.
 private final class FakeJsEvaluator {
@@ -68,6 +68,19 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
         XCTAssertTrue(js.contains("\"size\":\"medium\""))
         XCTAssertTrue(js.contains("\"position\":\"right\""))
         XCTAssertTrue(js.contains("\"hidden\":false"))
+        XCTAssertTrue(js.contains("\"theme\":\"system\""))
+    }
+
+    func testEvaluatesJsWithTheForcedTheme() {
+        let evaluator = FakeJsEvaluator()
+        let scheduler = FakeScheduler()
+        let presenter = WebFallbackEmojiPickerPresenter(jsEvaluator: evaluator.eval, scheduler: scheduler.schedule)
+        let darkOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, dismissOnBackdropTap: true, theme: "dark")
+
+        presenter.present(options: darkOptions) { _ in }
+        flushMainQueue()
+
+        XCTAssertTrue(evaluator.evaluated[0].contains("\"theme\":\"dark\""))
     }
 
     func testHandleBridgeMessageResolvesTheMatchingPendingCompletion() {

@@ -12,5 +12,11 @@ import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 public interface EmojiPickerPresenter {
 
     /** Presents the picker for the given presentation mode and reports the outcome. */
-    void present(String presentation, boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, EmojiPickerCallback callback);
+    void present(
+        String presentation,
+        boolean dismissOnBackdropTap,
+        EmojiCloseButtonOptions closeButton,
+        String theme,
+        EmojiPickerCallback callback
+    );
 }
