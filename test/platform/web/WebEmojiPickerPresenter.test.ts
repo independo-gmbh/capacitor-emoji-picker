@@ -126,6 +126,19 @@ describe('WebEmojiPickerPresenter', () => {
         expect(dialogCount()).toBe(0);
     });
 
+    it('forces the picker into light mode so it matches the unthemed sheet chrome', async () => {
+        const picker = createFakePicker();
+        const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+        const resultPromise = presenter.present();
+        await flush();
+        expect(picker.classList.contains('light')).toBe(true);
+
+        picker.dispatchEvent(new CustomEvent('emoji-click', { detail: { unicode: '😀' } }));
+        await advancePastCloseAnimation();
+        await resultPromise;
+    });
+
     it('sets the bundled data source on the picker element', async () => {
         const picker = createFakePicker();
         const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
