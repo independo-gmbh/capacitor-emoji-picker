@@ -131,7 +131,7 @@ public class WebFallbackEmojiPickerPresenterTest {
         WebFallbackEmojiPickerPresenter presenter =
             new WebFallbackEmojiPickerPresenter(evaluator, () -> null, new FakeScheduler(), SYNCHRONOUS_UI_THREAD_DISPATCHER);
 
-        presenter.present("web", true, CLOSE_BUTTON, new CapturingCallback());
+        presenter.present("web", true, CLOSE_BUTTON, "system", new CapturingCallback());
 
         assertEquals(1, evaluator.evaluated.size());
         String js = evaluator.evaluated.get(0);
@@ -140,6 +140,18 @@ public class WebFallbackEmojiPickerPresenterTest {
         assertTrue(js.contains("\"size\":\"medium\""));
         assertTrue(js.contains("\"position\":\"right\""));
         assertTrue(js.contains("\"hidden\":false"));
+        assertTrue(js.contains("\"theme\":\"system\""));
+    }
+
+    @Test
+    public void evaluatesJsWithTheForcedTheme() {
+        FakeJsEvaluator evaluator = new FakeJsEvaluator();
+        WebFallbackEmojiPickerPresenter presenter =
+            new WebFallbackEmojiPickerPresenter(evaluator, () -> null, new FakeScheduler(), SYNCHRONOUS_UI_THREAD_DISPATCHER);
+
+        presenter.present("web", true, CLOSE_BUTTON, "dark", new CapturingCallback());
+
+        assertTrue(evaluator.evaluated.get(0).contains("\"theme\":\"dark\""));
     }
 
     @Test
@@ -149,7 +161,7 @@ public class WebFallbackEmojiPickerPresenterTest {
             new WebFallbackEmojiPickerPresenter(evaluator, () -> null, new FakeScheduler(), SYNCHRONOUS_UI_THREAD_DISPATCHER);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, CLOSE_BUTTON, callback);
+        presenter.present("web", true, CLOSE_BUTTON, "system", callback);
         String js = evaluator.evaluated.get(0);
         String requestId = js.substring(js.indexOf("('") + 2, js.indexOf("',"));
 
@@ -166,7 +178,7 @@ public class WebFallbackEmojiPickerPresenterTest {
             new WebFallbackEmojiPickerPresenter(evaluator, () -> null, new FakeScheduler(), SYNCHRONOUS_UI_THREAD_DISPATCHER);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, CLOSE_BUTTON, callback);
+        presenter.present("web", true, CLOSE_BUTTON, "system", callback);
         String js = evaluator.evaluated.get(0);
         String requestId = js.substring(js.indexOf("('") + 2, js.indexOf("',"));
 
@@ -182,7 +194,7 @@ public class WebFallbackEmojiPickerPresenterTest {
             new WebFallbackEmojiPickerPresenter(evaluator, () -> null, new FakeScheduler(), SYNCHRONOUS_UI_THREAD_DISPATCHER);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, CLOSE_BUTTON, callback);
+        presenter.present("web", true, CLOSE_BUTTON, "system", callback);
         presenter.onWebResult("some-other-request-id", "😀", null);
 
         assertEquals(0, callback.callCount);
@@ -195,7 +207,7 @@ public class WebFallbackEmojiPickerPresenterTest {
         WebFallbackEmojiPickerPresenter presenter = new WebFallbackEmojiPickerPresenter(evaluator, () -> null, scheduler, SYNCHRONOUS_UI_THREAD_DISPATCHER);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, CLOSE_BUTTON, callback);
+        presenter.present("web", true, CLOSE_BUTTON, "system", callback);
         String js = evaluator.evaluated.get(0);
         String requestId = js.substring(js.indexOf("('") + 2, js.indexOf("',"));
 
@@ -218,7 +230,7 @@ public class WebFallbackEmojiPickerPresenterTest {
         WebFallbackEmojiPickerPresenter presenter = new WebFallbackEmojiPickerPresenter(evaluator, () -> null, scheduler, SYNCHRONOUS_UI_THREAD_DISPATCHER);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, CLOSE_BUTTON, callback);
+        presenter.present("web", true, CLOSE_BUTTON, "system", callback);
 
         evaluator.fireEvalCompleted(0);
 
@@ -238,7 +250,7 @@ public class WebFallbackEmojiPickerPresenterTest {
         WebFallbackEmojiPickerPresenter presenter = new WebFallbackEmojiPickerPresenter(evaluator, () -> null, scheduler, SYNCHRONOUS_UI_THREAD_DISPATCHER);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, CLOSE_BUTTON, callback);
+        presenter.present("web", true, CLOSE_BUTTON, "system", callback);
         String js = evaluator.evaluated.get(0);
         String requestId = js.substring(js.indexOf("('") + 2, js.indexOf("',"));
 
@@ -259,7 +271,7 @@ public class WebFallbackEmojiPickerPresenterTest {
         WebFallbackEmojiPickerPresenter presenter = new WebFallbackEmojiPickerPresenter(evaluator, () -> null, scheduler, SYNCHRONOUS_UI_THREAD_DISPATCHER);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, CLOSE_BUTTON, callback);
+        presenter.present("web", true, CLOSE_BUTTON, "system", callback);
         String js = evaluator.evaluated.get(0);
         String requestId = js.substring(js.indexOf("('") + 2, js.indexOf("',"));
 
@@ -275,7 +287,7 @@ public class WebFallbackEmojiPickerPresenterTest {
             new WebFallbackEmojiPickerPresenter(evaluator, () -> null, new FakeScheduler(), SYNCHRONOUS_UI_THREAD_DISPATCHER);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, CLOSE_BUTTON, callback);
+        presenter.present("web", true, CLOSE_BUTTON, "system", callback);
         String js = evaluator.evaluated.get(0);
         String requestId = js.substring(js.indexOf("('") + 2, js.indexOf("',"));
 
@@ -294,7 +306,7 @@ public class WebFallbackEmojiPickerPresenterTest {
             new WebFallbackEmojiPickerPresenter(evaluator, () -> activity, new FakeScheduler(), SYNCHRONOUS_UI_THREAD_DISPATCHER);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, CLOSE_BUTTON, callback);
+        presenter.present("web", true, CLOSE_BUTTON, "system", callback);
         ((FakeLifecycle) activity.getLifecycle()).firePause(activity);
 
         assertEquals(1, callback.callCount);
@@ -310,7 +322,7 @@ public class WebFallbackEmojiPickerPresenterTest {
             new WebFallbackEmojiPickerPresenter(evaluator, () -> activity, new FakeScheduler(), SYNCHRONOUS_UI_THREAD_DISPATCHER);
         CapturingCallback callback = new CapturingCallback();
 
-        presenter.present("web", true, CLOSE_BUTTON, callback);
+        presenter.present("web", true, CLOSE_BUTTON, "system", callback);
         ((FakeLifecycle) activity.getLifecycle()).fireDestroy(activity);
 
         assertEquals(1, callback.callCount);

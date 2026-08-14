@@ -63,6 +63,7 @@ final class NativeEmojiPickerPresenter: EmojiPickerPresenter {
             self?.presentOnMainThread(
                 closeButton: options.closeButton,
                 dismissOnBackdropTap: options.dismissOnBackdropTap,
+                theme: options.theme,
                 completion: completion
             )
         }
@@ -71,6 +72,7 @@ final class NativeEmojiPickerPresenter: EmojiPickerPresenter {
     private func presentOnMainThread(
         closeButton: EmojiCloseButtonOptions,
         dismissOnBackdropTap: Bool,
+        theme: String,
         completion: @escaping (Result<EmojiPickerResult, EmojiPickerError>) -> Void
     ) {
         let host = hostViewControllerProvider()
@@ -89,7 +91,7 @@ final class NativeEmojiPickerPresenter: EmojiPickerPresenter {
         let presentation = Presentation(completion: completion)
         current = presentation
         presentation.owner = self
-        presentation.start(host: host, closeButton: closeButton, dismissOnBackdropTap: dismissOnBackdropTap, factory: factory)
+        presentation.start(host: host, closeButton: closeButton, dismissOnBackdropTap: dismissOnBackdropTap, theme: theme, factory: factory)
     }
 
     /// Owns everything about ONE presentation attempt: its handle, its cleanup, and whether it
@@ -110,12 +112,14 @@ final class NativeEmojiPickerPresenter: EmojiPickerPresenter {
             host: UIViewController,
             closeButton: EmojiCloseButtonOptions,
             dismissOnBackdropTap: Bool,
+            theme: String,
             factory: EmojiKeyboardPresentationFactory
         ) {
             let createdHandle = factory.create(
                 hostViewController: host,
                 closeButtonOptions: closeButton,
                 dismissOnBackdropTap: dismissOnBackdropTap,
+                theme: theme,
                 listener: self
             )
 

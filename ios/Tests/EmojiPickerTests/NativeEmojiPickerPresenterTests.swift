@@ -3,8 +3,8 @@ import XCTest
 @testable import EmojiPicker
 
 private let defaultCloseButton = EmojiCloseButtonOptions(size: "large", position: "right", hidden: false)
-private let autoOptions = EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, dismissOnBackdropTap: true)
-private let webOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: defaultCloseButton, dismissOnBackdropTap: true)
+private let autoOptions = EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, dismissOnBackdropTap: true, theme: "system")
+private let webOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: defaultCloseButton, dismissOnBackdropTap: true, theme: "system")
 
 /// A factory that captures the listener/handle/options passed to it so tests can drive them manually.
 private final class FakeEmojiKeyboardPresentationFactory: EmojiKeyboardPresentationFactory {
@@ -12,18 +12,21 @@ private final class FakeEmojiKeyboardPresentationFactory: EmojiKeyboardPresentat
     var lastHandle: FakeEmojiKeyboardPresentationHandle?
     var lastCloseButtonOptions: EmojiCloseButtonOptions?
     var lastDismissOnBackdropTap: Bool?
+    var lastTheme: String?
     var createCount = 0
 
     func create(
         hostViewController: UIViewController,
         closeButtonOptions: EmojiCloseButtonOptions,
         dismissOnBackdropTap: Bool,
+        theme: String,
         listener: EmojiKeyboardPresentationListener
     ) -> EmojiKeyboardPresentationHandle {
         createCount += 1
         capturedListener = listener
         lastCloseButtonOptions = closeButtonOptions
         lastDismissOnBackdropTap = dismissOnBackdropTap
+        lastTheme = theme
         let handle = FakeEmojiKeyboardPresentationHandle()
         lastHandle = handle
         return handle
@@ -48,7 +51,10 @@ final class NativeEmojiPickerPresenterTests: XCTestCase {
     /// briefly running the run loop drains it, exactly like Android's `runOnUiThread` handoff
     /// completing synchronously enough for its tests to proceed without any pumping.
     private func pumpMainQueue() {
-        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        // 0.05s was enough locally but proved flaky in CI's coverage-instrumented build (slower
+        // due to coverage collection overhead), intermittently leaving the queued
+        // DispatchQueue.main.async block still pending when assertions ran.
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
     }
 
     func testUnavailableHostReportsNativeUnavailableAndNeverCreatesPresentation() {
@@ -270,7 +276,7 @@ final class NativeEmojiPickerPresenterTests: XCTestCase {
 
         let closeButton = EmojiCloseButtonOptions(size: "small", position: "left", hidden: true)
         presenter.present(
-            options: EmojiPickerPresentOptions(presentation: "auto", closeButton: closeButton, dismissOnBackdropTap: false)
+            options: EmojiPickerPresentOptions(presentation: "auto", closeButton: closeButton, dismissOnBackdropTap: false, theme: "system")
         ) { _ in }
         pumpMainQueue()
 
@@ -278,5 +284,21 @@ final class NativeEmojiPickerPresenterTests: XCTestCase {
         XCTAssertEqual(factory.lastCloseButtonOptions?.position, "left")
         XCTAssertEqual(factory.lastCloseButtonOptions?.hidden, true)
         XCTAssertEqual(factory.lastDismissOnBackdropTap, false)
+    }
+
+    func testThemeIsForwardedToFactory() {
+        let factory = FakeEmojiKeyboardPresentationFactory()
+        let presenter = NativeEmojiPickerPresenter(
+            hostViewControllerProvider: { UIViewController() },
+            factory: factory,
+            availabilityChecker: { _ in true }
+        )
+
+        presenter.present(
+            options: EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, dismissOnBackdropTap: true, theme: "dark")
+        ) { _ in }
+        pumpMainQueue()
+
+        XCTAssertEqual(factory.lastTheme, "dark")
     }
 }

@@ -126,17 +126,108 @@ describe('WebEmojiPickerPresenter', () => {
         expect(dialogCount()).toBe(0);
     });
 
-    it('forces the picker into light mode so it matches the unthemed sheet chrome', async () => {
-        const picker = createFakePicker();
-        const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+    describe('theme', () => {
+        function mockPrefersDark(matches: boolean): void {
+            (window.matchMedia as unknown as jest.Mock) = jest.fn().mockReturnValue({ matches } as MediaQueryList);
+        }
 
-        const resultPromise = presenter.present();
-        await flush();
-        expect(picker.classList.contains('light')).toBe(true);
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
 
-        picker.dispatchEvent(new CustomEvent('emoji-click', { detail: { unicode: '😀' } }));
-        await advancePastCloseAnimation();
-        await resultPromise;
+        it('resolves system theme to dark when the OS prefers dark', async () => {
+            mockPrefersDark(true);
+            const picker = createFakePicker();
+            const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+            const resultPromise = presenter.present({ theme: 'system' });
+            await flush();
+
+            const dialog = document.body.firstElementChild as HTMLElement;
+            expect(picker.classList.contains('dark')).toBe(true);
+            expect(dialog.classList.contains('emoji-picker-sheet--dark')).toBe(true);
+
+            picker.dispatchEvent(new CustomEvent('emoji-click', { detail: { unicode: '😀' } }));
+            await advancePastCloseAnimation();
+            await resultPromise;
+        });
+
+        it('resolves system theme (the default) to light when the OS prefers light', async () => {
+            mockPrefersDark(false);
+            const picker = createFakePicker();
+            const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+            const resultPromise = presenter.present();
+            await flush();
+
+            const dialog = document.body.firstElementChild as HTMLElement;
+            expect(picker.classList.contains('light')).toBe(true);
+            expect(dialog.classList.contains('emoji-picker-sheet--light')).toBe(true);
+
+            picker.dispatchEvent(new CustomEvent('emoji-click', { detail: { unicode: '😀' } }));
+            await advancePastCloseAnimation();
+            await resultPromise;
+        });
+
+        it('forces dark theme regardless of the OS preference', async () => {
+            mockPrefersDark(false);
+            const picker = createFakePicker();
+            const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+            const resultPromise = presenter.present({ theme: 'dark' });
+            await flush();
+
+            const dialog = document.body.firstElementChild as HTMLElement;
+            expect(picker.classList.contains('dark')).toBe(true);
+            expect(dialog.classList.contains('emoji-picker-sheet--dark')).toBe(true);
+
+            picker.dispatchEvent(new CustomEvent('emoji-click', { detail: { unicode: '😀' } }));
+            await advancePastCloseAnimation();
+            await resultPromise;
+        });
+
+        it('sets an explicit dark background on the picker rather than the unreliable Canvas keyword', async () => {
+            const picker = createFakePicker();
+            const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+            const resultPromise = presenter.present({ theme: 'dark' });
+            await flush();
+            expect(picker.style.getPropertyValue('--background')).toBe('#222');
+
+            picker.dispatchEvent(new CustomEvent('emoji-click', { detail: { unicode: '😀' } }));
+            await advancePastCloseAnimation();
+            await resultPromise;
+        });
+
+        it('sets an explicit light background on the picker rather than the unreliable Canvas keyword', async () => {
+            const picker = createFakePicker();
+            const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+            const resultPromise = presenter.present({ theme: 'light' });
+            await flush();
+            expect(picker.style.getPropertyValue('--background')).toBe('#fff');
+
+            picker.dispatchEvent(new CustomEvent('emoji-click', { detail: { unicode: '😀' } }));
+            await advancePastCloseAnimation();
+            await resultPromise;
+        });
+
+        it('forces light theme regardless of the OS preference', async () => {
+            mockPrefersDark(true);
+            const picker = createFakePicker();
+            const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+            const resultPromise = presenter.present({ theme: 'light' });
+            await flush();
+
+            const dialog = document.body.firstElementChild as HTMLElement;
+            expect(picker.classList.contains('light')).toBe(true);
+            expect(dialog.classList.contains('emoji-picker-sheet--light')).toBe(true);
+
+            picker.dispatchEvent(new CustomEvent('emoji-click', { detail: { unicode: '😀' } }));
+            await advancePastCloseAnimation();
+            await resultPromise;
+        });
     });
 
     it('sets the bundled data source on the picker element', async () => {

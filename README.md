@@ -185,11 +185,12 @@ Result of presenting the emoji picker.
 
 Options for presenting the emoji picker.
 
-| Prop                       | Type                                                                                    | Description                                                                                                                                                                                                                                                                                                                 | Default             |
-| -------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| **`presentation`**         | <code><a href="#emojipickerpresentation">EmojiPickerPresentation</a></code>             | `auto`: prefer native/system UI and fall back to the web picker when native presentation is not available or fails. `web`: always use the web picker, including inside Capacitor native apps.                                                                                                                               | <code>'auto'</code> |
-| **`closeButton`**          | <code><a href="#emojipickerclosebuttonoptions">EmojiPickerCloseButtonOptions</a></code> | Configures the close button rendered above the iOS keyboard/the web picker sheet (iOS has no system-provided one). Ignored on Android.                                                                                                                                                                                      |                     |
-| **`dismissOnBackdropTap`** | <code>boolean</code>                                                                    | Dismiss the picker when the user taps the transparent area outside the keyboard/button (iOS) or the scrim outside the picker sheet (Android and web). On iOS and web, if `closeButton.hidden` is `true`, this is treated as `true` regardless of the value passed here, so the user always has a way to dismiss the picker. | <code>true</code>   |
+| Prop                       | Type                                                                                    | Description                                                                                                                                                                                                                                                                                                                                                                                                           | Default               |
+| -------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| **`presentation`**         | <code><a href="#emojipickerpresentation">EmojiPickerPresentation</a></code>             | `auto`: prefer native/system UI and fall back to the web picker when native presentation is not available or fails. `web`: always use the web picker, including inside Capacitor native apps.                                                                                                                                                                                                                         | <code>'auto'</code>   |
+| **`closeButton`**          | <code><a href="#emojipickerclosebuttonoptions">EmojiPickerCloseButtonOptions</a></code> | Configures the close button rendered above the iOS keyboard/the web picker sheet (iOS has no system-provided one). Ignored on Android.                                                                                                                                                                                                                                                                                |                       |
+| **`dismissOnBackdropTap`** | <code>boolean</code>                                                                    | Dismiss the picker when the user taps the transparent area outside the keyboard/button (iOS) or the scrim outside the picker sheet (Android and web). On iOS and web, if `closeButton.hidden` is `true`, this is treated as `true` regardless of the value passed here, so the user always has a way to dismiss the picker.                                                                                           | <code>true</code>     |
+| **`theme`**                | <code><a href="#emojipickertheme">EmojiPickerTheme</a></code>                           | `system`: follows the OS/app appearance setting. `light` / `dark`: forces the picker's appearance regardless of the system setting. On iOS native presentation, this also sets `keyboardAppearance` on the underlying text input, which is the mechanism the system emoji keyboard itself honors (separate from the app's own `overrideUserInterfaceStyle`, which only themes the plugin's own overlay/close button). | <code>'system'</code> |
 
 
 #### EmojiPickerCloseButtonOptions
@@ -211,6 +212,13 @@ Configures the close button rendered above the iOS native emoji keyboard/the web
 How the picker should be presented.
 
 <code>'auto' | 'web'</code>
+
+
+#### EmojiPickerTheme
+
+The picker's appearance.
+
+<code>'system' | 'light' | 'dark'</code>
 
 </docgen-api>
 

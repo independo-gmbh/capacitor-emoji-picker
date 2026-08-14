@@ -9,6 +9,7 @@ const elements = {
     closeButtonPosition: document.querySelector('#close-button-position'),
     closeButtonHidden: document.querySelector('#close-button-hidden'),
     dismissOnBackdropTap: document.querySelector('#dismiss-on-backdrop-tap'),
+    theme: document.querySelector('#theme'),
 };
 
 function setText(element, value) {
@@ -50,6 +51,7 @@ async function present(presentation) {
             ...(presentation ? { presentation } : {}),
             closeButton: buildCloseButtonOptions(),
             dismissOnBackdropTap: elements.dismissOnBackdropTap?.checked ?? true,
+            theme: elements.theme?.value,
         });
         setText(elements.selectedEmoji, result.emoji ?? '—');
     } catch (error) {

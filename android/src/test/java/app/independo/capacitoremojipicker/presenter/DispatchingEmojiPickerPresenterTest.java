@@ -15,7 +15,7 @@ public class DispatchingEmojiPickerPresenterTest {
         int callCount;
 
         @Override
-        public void present(String presentation, boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, EmojiPickerCallback callback) {
+        public void present(String presentation, boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, String theme, EmojiPickerCallback callback) {
             lastPresentation = presentation;
             callCount++;
             callback.onResult(new EmojiPickerResult(null));
@@ -28,7 +28,7 @@ public class DispatchingEmojiPickerPresenterTest {
         RecordingPresenter webFallbackPresenter = new RecordingPresenter();
         DispatchingEmojiPickerPresenter dispatcher = new DispatchingEmojiPickerPresenter(nativePresenter, webFallbackPresenter);
 
-        dispatcher.present("auto", true, null, new EmojiPickerCallback() {
+        dispatcher.present("auto", true, null, "system", new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 
@@ -46,7 +46,7 @@ public class DispatchingEmojiPickerPresenterTest {
         RecordingPresenter webFallbackPresenter = new RecordingPresenter();
         DispatchingEmojiPickerPresenter dispatcher = new DispatchingEmojiPickerPresenter(nativePresenter, webFallbackPresenter);
 
-        dispatcher.present("web", true, null, new EmojiPickerCallback() {
+        dispatcher.present("web", true, null, "system", new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 

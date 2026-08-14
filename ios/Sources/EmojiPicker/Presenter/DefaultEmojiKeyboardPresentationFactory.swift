@@ -25,6 +25,7 @@ final class DefaultEmojiKeyboardPresentationFactory: EmojiKeyboardPresentationFa
         hostViewController: UIViewController,
         closeButtonOptions: EmojiCloseButtonOptions,
         dismissOnBackdropTap: Bool,
+        theme: String,
         listener: EmojiKeyboardPresentationListener
     ) -> EmojiKeyboardPresentationHandle {
         guard hostViewController.presentedViewController == nil else {
@@ -37,10 +38,15 @@ final class DefaultEmojiKeyboardPresentationFactory: EmojiKeyboardPresentationFa
         let container = EmojiKeyboardContainerViewController(
             listener: listener,
             closeButtonOptions: closeButtonOptions,
-            dismissOnBackdropTap: dismissOnBackdropTap
+            dismissOnBackdropTap: dismissOnBackdropTap,
+            theme: theme
         )
         container.modalPresentationStyle = .overFullScreen
         container.modalTransitionStyle = .crossDissolve
+        // Themes the container's own view subtree (backdrop, close button tint) - separate from
+        // `emojiField.keyboardAppearance` below, which is what the system emoji keyboard itself
+        // (a separate window/process) actually honors.
+        container.overrideUserInterfaceStyle = Self.resolveInterfaceStyle(theme)
         // Must happen AFTER modalPresentationStyle is set: reading `presentationController`
         // lazily creates and caches one matching whatever style was active at that moment. Doing
         // this in the view controller's own init (before this call sets .overFullScreen) caches a
@@ -55,6 +61,16 @@ final class DefaultEmojiKeyboardPresentationFactory: EmojiKeyboardPresentationFa
 
     private struct NoopHandle: EmojiKeyboardPresentationHandle {
         func dismiss() {}
+    }
+
+    /// Maps the JS `theme` string to the container's own trait override. `"system"` (or any
+    /// unrecognized value) leaves it `.unspecified`, following the app/OS setting as before.
+    fileprivate static func resolveInterfaceStyle(_ theme: String) -> UIUserInterfaceStyle {
+        switch theme {
+        case "light": return .light
+        case "dark": return .dark
+        default: return .unspecified
+        }
     }
 
     private final class ContainerHandle: EmojiKeyboardPresentationHandle {
@@ -124,16 +140,25 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
     /// never leave the user with zero ways to dismiss the keyboard, so hiding it force-enables
     /// backdrop-tap-to-dismiss regardless of what was explicitly requested.
     private let effectiveDismissOnBackdropTap: Bool
-    private let emojiField = EmojiTextField()
+    private let theme: String
+    /// Internal (not `private`) so `EmojiTextFieldDelegateTests` can assert `keyboardAppearance`
+    /// after `viewDidLoad` - mirrors the class-level visibility rationale above.
+    let emojiField = EmojiTextField()
     private let closeButton: UIButton
     private var modeChangeObserver: NSObjectProtocol?
     private var verificationTimeoutWorkItem: DispatchWorkItem?
     private var hasReportedOutcome = false
 
-    init(listener: EmojiKeyboardPresentationListener, closeButtonOptions: EmojiCloseButtonOptions, dismissOnBackdropTap: Bool) {
+    init(
+        listener: EmojiKeyboardPresentationListener,
+        closeButtonOptions: EmojiCloseButtonOptions,
+        dismissOnBackdropTap: Bool,
+        theme: String
+    ) {
         self.listener = listener
         self.closeButtonOptions = closeButtonOptions
         self.effectiveDismissOnBackdropTap = dismissOnBackdropTap || closeButtonOptions.hidden
+        self.theme = theme
         self.closeButton = Self.makeCloseButton(options: closeButtonOptions)
         super.init(nibName: nil, bundle: nil)
     }
@@ -150,6 +175,10 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
         emojiField.delegate = self
         emojiField.alpha = 0
         emojiField.frame = CGRect(x: 0, y: 0, width: 1, height: 1)
+        // The system emoji keyboard lives in a separate window/process and does not follow
+        // `overrideUserInterfaceStyle` (set on this container for the plugin's own chrome, below);
+        // `keyboardAppearance` is the mechanism the system keyboard itself honors.
+        emojiField.keyboardAppearance = Self.resolveKeyboardAppearance(theme)
         view.addSubview(emojiField)
 
         setUpCloseButton()
@@ -204,6 +233,16 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
             modeChangeObserver = nil
         }
         verificationTimeoutWorkItem = nil
+    }
+
+    /// Maps the JS `theme` string to `UIKeyboardAppearance`. `"system"` (or any unrecognized
+    /// value) leaves it `.default`, following the system keyboard's own OS-level setting as before.
+    private static func resolveKeyboardAppearance(_ theme: String) -> UIKeyboardAppearance {
+        switch theme {
+        case "light": return .light
+        case "dark": return .dark
+        default: return .default
+        }
     }
 
     /// A close button styled to match the system's own controls (Liquid Glass capsule on iOS 26+,

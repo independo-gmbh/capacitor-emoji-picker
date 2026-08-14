@@ -4,6 +4,11 @@
 export type EmojiPickerPresentation = 'auto' | 'web';
 
 /**
+ * The picker's appearance.
+ */
+export type EmojiPickerTheme = 'system' | 'light' | 'dark';
+
+/**
  * Options for presenting the emoji picker.
  */
 export interface EmojiPickerOptions {
@@ -28,6 +33,17 @@ export interface EmojiPickerOptions {
      * @default true
      */
     dismissOnBackdropTap?: boolean;
+    /**
+     * `system`: follows the OS/app appearance setting.
+     * `light` / `dark`: forces the picker's appearance regardless of the system setting.
+     *
+     * On iOS native presentation, this also sets `keyboardAppearance` on the underlying text
+     * input, which is the mechanism the system emoji keyboard itself honors (separate from the
+     * app's own `overrideUserInterfaceStyle`, which only themes the plugin's own overlay/close
+     * button).
+     * @default 'system'
+     */
+    theme?: EmojiPickerTheme;
 }
 
 /**
