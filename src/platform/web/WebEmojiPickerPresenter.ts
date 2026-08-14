@@ -195,6 +195,10 @@ export class WebEmojiPickerPresenter {
         try {
             picker = await this.createPickerElement();
             picker.dataSource = getBundledEmojiDataSourceUrl();
+            // The sheet chrome around the picker doesn't yet adapt to dark mode (issue #19), so
+            // force the picker to light mode too rather than let it auto-follow
+            // `prefers-color-scheme` on its own and visually mismatch the chrome.
+            picker.classList.add('light');
         } catch {
             throw new Error(ErrorCodes.NOT_IMPLEMENTED);
         }
