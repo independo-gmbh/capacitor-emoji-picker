@@ -2,7 +2,8 @@ import XCTest
 @testable import EmojiPicker
 
 private let defaultCloseButton = EmojiCloseButtonOptions(size: "large", position: "right", hidden: false)
-private let autoOptions = EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, dismissOnBackdropTap: true, theme: "system")
+private let defaultBackdrop = EmojiBackdropOptions(color: "#00000066", blur: 0)
+private let autoOptions = EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, backdrop: defaultBackdrop, dismissOnBackdropTap: true, theme: "system")
 
 /// A presenter that never calls back, simulating a picker that is still active.
 private final class PendingPresenter: EmojiPickerPresenter {

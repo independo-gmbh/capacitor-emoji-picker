@@ -1,5 +1,6 @@
 import { ErrorCodes } from '../../core/error-codes';
 import type {
+    EmojiPickerBackdropOptions,
     EmojiPickerCloseButtonOptions,
     EmojiPickerOptions,
     EmojiPickerResult,
@@ -82,12 +83,6 @@ function ensureSheetStylesInjected(): void {
             background-color: #222;
             color: #e8e8e8;
         }
-        dialog.emoji-picker-sheet::backdrop {
-            background: rgba(0, 0, 0, 0.4);
-        }
-        dialog.emoji-picker-sheet--dark::backdrop {
-            background: rgba(0, 0, 0, 0.6);
-        }
         dialog.emoji-picker-sheet[data-state='open'] {
             transform: translateY(0);
         }
@@ -117,6 +112,37 @@ function ensureSheetStylesInjected(): void {
         }
     `;
     document.head.appendChild(style);
+}
+
+const DEFAULT_BACKDROP_COLOR = '#00000066';
+const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+let backdropStyleCounter = 0;
+
+/** Validates a `#RGB`/`#RRGGBB`/`#RRGGBBAA` hex color, falling back to the default on any other input. */
+function resolveBackdropColor(color: string | undefined): string {
+    if (color !== undefined && HEX_COLOR_PATTERN.test(color)) {
+        return color;
+    }
+    return DEFAULT_BACKDROP_COLOR;
+}
+
+/** Injects a one-off `::backdrop` rule scoped to a unique class, since inline styles can't target it. */
+function injectBackdropStyle(options: EmojiPickerBackdropOptions): { className: string; remove: () => void } {
+    const className = `emoji-picker-backdrop-${++backdropStyleCounter}`;
+    const color = resolveBackdropColor(options.color);
+    const blur = options.blur ?? 0;
+    const style = document.createElement('style');
+    // `backdrop-filter` is always set explicitly, never omitted: some browsers (e.g. Safari/WKWebView)
+    // apply their own default blur to a <dialog>'s ::backdrop in their UA stylesheet, which would
+    // otherwise leak through unopposed whenever the caller doesn't request blur.
+    style.textContent = `
+        dialog.${className}::backdrop {
+            background: ${color};
+            backdrop-filter: ${blur > 0 ? `blur(${blur}px)` : 'none'};
+        }
+    `;
+    document.head.appendChild(style);
+    return { className, remove: () => style.remove() };
 }
 
 function prefersReducedMotion(): boolean {
@@ -261,8 +287,9 @@ export class WebEmojiPickerPresenter {
         picker.style.setProperty('--background', SHEET_BACKGROUND_COLOR[resolvedTheme]);
         picker.style.setProperty('--border-size', '0');
 
+        const backdropStyle = injectBackdropStyle(options.backdrop ?? {});
         const dialog = document.createElement('dialog');
-        dialog.className = `emoji-picker-sheet emoji-picker-sheet--${resolvedTheme}`;
+        dialog.className = `emoji-picker-sheet emoji-picker-sheet--${resolvedTheme} ${backdropStyle.className}`;
         dialog.setAttribute('role', 'dialog');
         dialog.setAttribute('aria-modal', 'true');
         dialog.setAttribute('aria-label', 'Emoji picker');
@@ -292,6 +319,7 @@ export class WebEmojiPickerPresenter {
                 document.body.style.overflow = previousBodyOverflow;
                 dialog.close();
                 dialog.remove();
+                backdropStyle.remove();
 
                 if (previouslyFocusedElement instanceof HTMLElement && document.contains(previouslyFocusedElement)) {
                     previouslyFocusedElement.focus?.();

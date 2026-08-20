@@ -68,6 +68,7 @@ final class WebFallbackEmojiPickerPresenter: EmojiPickerPresenter {
         let json = Self.encodeOptionsJson(
             dismissOnBackdropTap: options.dismissOnBackdropTap,
             closeButton: options.closeButton,
+            backdrop: options.backdrop,
             theme: options.theme
         )
         // The eval "completion" here only means the script at least started executing (i.e. the
@@ -112,10 +113,19 @@ final class WebFallbackEmojiPickerPresenter: EmojiPickerPresenter {
     }
 
     /// Hand-rolled instead of `JSONSerialization`: `size`/`position`/`theme` are always one of a
-    /// small fixed set of ASCII enum values validated/defaulted when the plugin call is parsed,
-    /// never arbitrary user text, so plain string interpolation is safe here.
-    private static func encodeOptionsJson(dismissOnBackdropTap: Bool, closeButton: EmojiCloseButtonOptions, theme: String) -> String {
-        "{\"dismissOnBackdropTap\":\(dismissOnBackdropTap),\"closeButton\":{\"size\":\"\(closeButton.size)\",\"position\":\"\(closeButton.position)\",\"hidden\":\(closeButton.hidden)},\"theme\":\"\(theme)\"}"
+    /// small fixed set of ASCII enum values, and `backdrop.color` is a hex string matched against
+    /// a strict pattern, all validated/defaulted when the plugin call is parsed, never arbitrary
+    /// user text, so plain string interpolation is safe here.
+    private static func encodeOptionsJson(
+        dismissOnBackdropTap: Bool,
+        closeButton: EmojiCloseButtonOptions,
+        backdrop: EmojiBackdropOptions,
+        theme: String
+    ) -> String {
+        "{\"dismissOnBackdropTap\":\(dismissOnBackdropTap),"
+            + "\"closeButton\":{\"size\":\"\(closeButton.size)\",\"position\":\"\(closeButton.position)\",\"hidden\":\(closeButton.hidden)},"
+            + "\"backdrop\":{\"color\":\"\(backdrop.color)\",\"blur\":\(backdrop.blur)},"
+            + "\"theme\":\"\(theme)\"}"
     }
 
     private struct PendingRequest {

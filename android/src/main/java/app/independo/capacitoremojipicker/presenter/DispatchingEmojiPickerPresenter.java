@@ -1,5 +1,6 @@
 package app.independo.capacitoremojipicker.presenter;
 
+import app.independo.capacitoremojipicker.core.EmojiBackdropOptions;
 import app.independo.capacitoremojipicker.core.EmojiCloseButtonOptions;
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 
@@ -23,10 +24,11 @@ public class DispatchingEmojiPickerPresenter implements EmojiPickerPresenter {
         String presentation,
         boolean dismissOnBackdropTap,
         EmojiCloseButtonOptions closeButton,
+        EmojiBackdropOptions backdrop,
         String theme,
         EmojiPickerCallback callback
     ) {
         EmojiPickerPresenter target = "web".equals(presentation) ? webFallbackPresenter : nativePresenter;
-        target.present(presentation, dismissOnBackdropTap, closeButton, theme, callback);
+        target.present(presentation, dismissOnBackdropTap, closeButton, backdrop, theme, callback);
     }
 }

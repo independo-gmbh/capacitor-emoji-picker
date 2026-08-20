@@ -62,6 +62,7 @@ final class NativeEmojiPickerPresenter: EmojiPickerPresenter {
         DispatchQueue.main.async { [weak self] in
             self?.presentOnMainThread(
                 closeButton: options.closeButton,
+                backdrop: options.backdrop,
                 dismissOnBackdropTap: options.dismissOnBackdropTap,
                 theme: options.theme,
                 completion: completion
@@ -71,6 +72,7 @@ final class NativeEmojiPickerPresenter: EmojiPickerPresenter {
 
     private func presentOnMainThread(
         closeButton: EmojiCloseButtonOptions,
+        backdrop: EmojiBackdropOptions,
         dismissOnBackdropTap: Bool,
         theme: String,
         completion: @escaping (Result<EmojiPickerResult, EmojiPickerError>) -> Void
@@ -91,7 +93,14 @@ final class NativeEmojiPickerPresenter: EmojiPickerPresenter {
         let presentation = Presentation(completion: completion)
         current = presentation
         presentation.owner = self
-        presentation.start(host: host, closeButton: closeButton, dismissOnBackdropTap: dismissOnBackdropTap, theme: theme, factory: factory)
+        presentation.start(
+            host: host,
+            closeButton: closeButton,
+            backdrop: backdrop,
+            dismissOnBackdropTap: dismissOnBackdropTap,
+            theme: theme,
+            factory: factory
+        )
     }
 
     /// Owns everything about ONE presentation attempt: its handle, its cleanup, and whether it
@@ -111,6 +120,7 @@ final class NativeEmojiPickerPresenter: EmojiPickerPresenter {
         func start(
             host: UIViewController,
             closeButton: EmojiCloseButtonOptions,
+            backdrop: EmojiBackdropOptions,
             dismissOnBackdropTap: Bool,
             theme: String,
             factory: EmojiKeyboardPresentationFactory
@@ -118,6 +128,7 @@ final class NativeEmojiPickerPresenter: EmojiPickerPresenter {
             let createdHandle = factory.create(
                 hostViewController: host,
                 closeButtonOptions: closeButton,
+                backdropOptions: backdrop,
                 dismissOnBackdropTap: dismissOnBackdropTap,
                 theme: theme,
                 listener: self

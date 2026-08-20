@@ -10,6 +10,7 @@ import XCTest
 // itself must be confirmed manually on a real device/simulator per iOS version.
 
 private let defaultCloseButtonOptions = EmojiCloseButtonOptions(size: "large", position: "right", hidden: false)
+private let defaultBackdropOptions = EmojiBackdropOptions(color: "#00000066", blur: 0)
 
 private final class CapturingListener: EmojiKeyboardPresentationListener {
     var selectedEmojis: [String] = []
@@ -36,6 +37,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
             let container = EmojiKeyboardContainerViewController(
                 listener: listener,
                 closeButtonOptions: defaultCloseButtonOptions,
+                backdropOptions: defaultBackdropOptions,
                 dismissOnBackdropTap: true,
                 theme: "system"
             )
@@ -54,6 +56,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
         let container = EmojiKeyboardContainerViewController(
             listener: listener,
             closeButtonOptions: defaultCloseButtonOptions,
+                backdropOptions: defaultBackdropOptions,
             dismissOnBackdropTap: true,
             theme: "system"
         )
@@ -71,6 +74,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
         let container = EmojiKeyboardContainerViewController(
             listener: listener,
             closeButtonOptions: defaultCloseButtonOptions,
+                backdropOptions: defaultBackdropOptions,
             dismissOnBackdropTap: true,
             theme: "system"
         )
@@ -90,6 +94,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
             let container = EmojiKeyboardContainerViewController(
                 listener: listener,
                 closeButtonOptions: defaultCloseButtonOptions,
+                backdropOptions: defaultBackdropOptions,
                 dismissOnBackdropTap: true,
                 theme: "system"
             )
@@ -106,6 +111,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
         let container = EmojiKeyboardContainerViewController(
             listener: listener,
             closeButtonOptions: defaultCloseButtonOptions,
+                backdropOptions: defaultBackdropOptions,
             dismissOnBackdropTap: true,
             theme: "dark"
         )
@@ -120,6 +126,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
         let container = EmojiKeyboardContainerViewController(
             listener: listener,
             closeButtonOptions: defaultCloseButtonOptions,
+                backdropOptions: defaultBackdropOptions,
             dismissOnBackdropTap: true,
             theme: "light"
         )
@@ -134,6 +141,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
         let container = EmojiKeyboardContainerViewController(
             listener: listener,
             closeButtonOptions: defaultCloseButtonOptions,
+                backdropOptions: defaultBackdropOptions,
             dismissOnBackdropTap: true,
             theme: "system"
         )
@@ -146,7 +154,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
     func testCloseButtonHiddenIsNotAddedToViewHierarchy() {
         let listener = CapturingListener()
         let options = EmojiCloseButtonOptions(size: "large", position: "right", hidden: true)
-        let container = EmojiKeyboardContainerViewController(listener: listener, closeButtonOptions: options, dismissOnBackdropTap: true, theme: "system")
+        let container = EmojiKeyboardContainerViewController(listener: listener, closeButtonOptions: options, backdropOptions: defaultBackdropOptions, dismissOnBackdropTap: true, theme: "system")
 
         _ = container.view // force viewDidLoad
 
@@ -158,6 +166,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
         let container = EmojiKeyboardContainerViewController(
             listener: listener,
             closeButtonOptions: defaultCloseButtonOptions,
+                backdropOptions: defaultBackdropOptions,
             dismissOnBackdropTap: true,
             theme: "system"
         )
@@ -172,6 +181,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
         let container = EmojiKeyboardContainerViewController(
             listener: listener,
             closeButtonOptions: defaultCloseButtonOptions,
+                backdropOptions: defaultBackdropOptions,
             dismissOnBackdropTap: true,
             theme: "system"
         )
@@ -184,7 +194,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
     func testBackdropTapGestureNotAddedWhenDisabledAndButtonVisible() {
         let listener = CapturingListener()
         let options = EmojiCloseButtonOptions(size: "large", position: "right", hidden: false)
-        let container = EmojiKeyboardContainerViewController(listener: listener, closeButtonOptions: options, dismissOnBackdropTap: false, theme: "system")
+        let container = EmojiKeyboardContainerViewController(listener: listener, closeButtonOptions: options, backdropOptions: defaultBackdropOptions, dismissOnBackdropTap: false, theme: "system")
 
         _ = container.view // force viewDidLoad
 
@@ -196,7 +206,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
         // keyboard by combining `hidden: true` with `dismissOnBackdropTap: false`.
         let listener = CapturingListener()
         let options = EmojiCloseButtonOptions(size: "large", position: "right", hidden: true)
-        let container = EmojiKeyboardContainerViewController(listener: listener, closeButtonOptions: options, dismissOnBackdropTap: false, theme: "system")
+        let container = EmojiKeyboardContainerViewController(listener: listener, closeButtonOptions: options, backdropOptions: defaultBackdropOptions, dismissOnBackdropTap: false, theme: "system")
 
         _ = container.view // force viewDidLoad
 
@@ -208,6 +218,7 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
         let container = EmojiKeyboardContainerViewController(
             listener: listener,
             closeButtonOptions: defaultCloseButtonOptions,
+                backdropOptions: defaultBackdropOptions,
             dismissOnBackdropTap: true,
             theme: "system"
         )
@@ -218,4 +229,68 @@ final class EmojiTextFieldDelegateTests: XCTestCase {
 
         XCTAssertEqual(listener.dismissedCount, 1)
     }
+
+    func testBackdropViewIsInsertedBehindOtherSubviews() {
+        let listener = CapturingListener()
+        let container = EmojiKeyboardContainerViewController(
+            listener: listener,
+            closeButtonOptions: defaultCloseButtonOptions,
+            backdropOptions: defaultBackdropOptions,
+            dismissOnBackdropTap: true,
+            theme: "system"
+        )
+
+        _ = container.view // force viewDidLoad
+
+        XCTAssertEqual(container.view.subviews.first, container.backdropView)
+    }
+
+    func testBackdropViewTintsWithTheGivenColor() {
+        let listener = CapturingListener()
+        let backdrop = EmojiBackdropOptions(color: "#112233aa", blur: 0)
+        let container = EmojiKeyboardContainerViewController(
+            listener: listener,
+            closeButtonOptions: defaultCloseButtonOptions,
+            backdropOptions: backdrop,
+            dismissOnBackdropTap: true,
+            theme: "system"
+        )
+
+        _ = container.view // force viewDidLoad
+
+        let tintView = container.backdropView.subviews.first { !($0 is UIVisualEffectView) }
+        XCTAssertEqual(tintView?.backgroundColor, UIColor(emojiPickerBackdropHex: "#112233aa"))
+    }
+
+    func testBackdropViewAddsNoBlurEffectWhenBlurIsZero() {
+        let listener = CapturingListener()
+        let container = EmojiKeyboardContainerViewController(
+            listener: listener,
+            closeButtonOptions: defaultCloseButtonOptions,
+            backdropOptions: defaultBackdropOptions,
+            dismissOnBackdropTap: true,
+            theme: "system"
+        )
+
+        _ = container.view // force viewDidLoad
+
+        XCTAssertNil(container.backdropView.subviews.first { $0 is UIVisualEffectView })
+    }
+
+    func testBackdropViewAddsBlurEffectWhenBlurIsPositive() {
+        let listener = CapturingListener()
+        let backdrop = EmojiBackdropOptions(color: "#00000066", blur: 8)
+        let container = EmojiKeyboardContainerViewController(
+            listener: listener,
+            closeButtonOptions: defaultCloseButtonOptions,
+            backdropOptions: backdrop,
+            dismissOnBackdropTap: true,
+            theme: "system"
+        )
+
+        _ = container.view // force viewDidLoad
+
+        XCTAssertNotNil(container.backdropView.subviews.first { $0 is UIVisualEffectView })
+    }
+
 }

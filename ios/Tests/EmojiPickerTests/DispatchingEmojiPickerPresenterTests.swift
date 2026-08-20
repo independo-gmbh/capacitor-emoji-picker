@@ -2,6 +2,7 @@ import XCTest
 @testable import EmojiPicker
 
 private let closeButton = EmojiCloseButtonOptions(size: "medium", position: "right", hidden: false)
+private let defaultBackdrop = EmojiBackdropOptions(color: "#00000066", blur: 0)
 
 private final class RecordingPresenter: EmojiPickerPresenter {
     var lastPresentation: String?
@@ -20,7 +21,7 @@ final class DispatchingEmojiPickerPresenterTests: XCTestCase {
         let webFallbackPresenter = RecordingPresenter()
         let dispatcher = DispatchingEmojiPickerPresenter(nativePresenter: nativePresenter, webFallbackPresenter: webFallbackPresenter)
 
-        let options = EmojiPickerPresentOptions(presentation: "auto", closeButton: closeButton, dismissOnBackdropTap: true, theme: "system")
+        let options = EmojiPickerPresentOptions(presentation: "auto", closeButton: closeButton, backdrop: defaultBackdrop, dismissOnBackdropTap: true, theme: "system")
         dispatcher.present(options: options) { _ in }
 
         XCTAssertEqual(nativePresenter.callCount, 1)
@@ -32,7 +33,7 @@ final class DispatchingEmojiPickerPresenterTests: XCTestCase {
         let webFallbackPresenter = RecordingPresenter()
         let dispatcher = DispatchingEmojiPickerPresenter(nativePresenter: nativePresenter, webFallbackPresenter: webFallbackPresenter)
 
-        let options = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, dismissOnBackdropTap: true, theme: "system")
+        let options = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, backdrop: defaultBackdrop, dismissOnBackdropTap: true, theme: "system")
         dispatcher.present(options: options) { _ in }
 
         XCTAssertEqual(nativePresenter.callCount, 0)
