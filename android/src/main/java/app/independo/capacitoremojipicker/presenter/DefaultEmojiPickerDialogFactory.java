@@ -1,15 +1,23 @@
 package app.independo.capacitoremojipicker.presenter;
 
 import android.app.Activity;
+import android.view.View;
 import android.view.ViewGroup;
 import androidx.emoji2.emojipicker.EmojiPickerView;
+import app.independo.capacitoremojipicker.core.EmojiBackdropOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 /** Shows {@link EmojiPickerView} inside a Material bottom sheet dialog. */
 public class DefaultEmojiPickerDialogFactory implements EmojiPickerDialogFactory {
 
     @Override
-    public EmojiPickerDialogHandle create(Activity activity, boolean dismissOnBackdropTap, String theme, Listener listener) {
+    public EmojiPickerDialogHandle create(
+        Activity activity,
+        boolean dismissOnBackdropTap,
+        EmojiBackdropOptions backdrop,
+        String theme,
+        Listener listener
+    ) {
         BottomSheetDialog dialog = new BottomSheetDialog(activity, resolveThemeResId(theme));
 
         // Built from the dialog's own themed context (not `activity`) so it resolves colors
@@ -28,6 +36,24 @@ public class DefaultEmojiPickerDialogFactory implements EmojiPickerDialogFactory
         dialog.setContentView(pickerView);
         dialog.setCanceledOnTouchOutside(dismissOnBackdropTap);
         dialog.setOnDismissListener(d -> listener.onDismissed());
+
+        // Replace the theme's default black-only dim with an arbitrary-color scrim view: `Window`
+        // only exposes `setDimAmount` (alpha over black), with no color hook. `backdrop.blur` is
+        // accepted for plumbing parity with web/iOS but not applied here - `RenderEffect` blurs a
+        // view's own subtree, not the separate host-Activity window beneath this dialog's window,
+        // so there's no API to blur what's behind it.
+        dialog.getWindow().setDimAmount(0f);
+        ViewGroup content = dialog.findViewById(android.R.id.content);
+        if (content != null) {
+            View scrim = new View(dialog.getContext());
+            scrim.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            ));
+            scrim.setBackgroundColor(EmojiBackdropOptions.toColorInt(backdrop.color));
+            content.addView(scrim, 0);
+        }
+
         dialog.show();
 
         return dialog::dismiss;

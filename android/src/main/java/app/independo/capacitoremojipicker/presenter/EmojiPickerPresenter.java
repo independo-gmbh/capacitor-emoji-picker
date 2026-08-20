@@ -1,5 +1,6 @@
 package app.independo.capacitoremojipicker.presenter;
 
+import app.independo.capacitoremojipicker.core.EmojiBackdropOptions;
 import app.independo.capacitoremojipicker.core.EmojiCloseButtonOptions;
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 
@@ -16,6 +17,7 @@ public interface EmojiPickerPresenter {
         String presentation,
         boolean dismissOnBackdropTap,
         EmojiCloseButtonOptions closeButton,
+        EmojiBackdropOptions backdrop,
         String theme,
         EmojiPickerCallback callback
     );

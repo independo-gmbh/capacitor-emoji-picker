@@ -3,14 +3,16 @@ import XCTest
 @testable import EmojiPicker
 
 private let defaultCloseButton = EmojiCloseButtonOptions(size: "large", position: "right", hidden: false)
-private let autoOptions = EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, dismissOnBackdropTap: true, theme: "system")
-private let webOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: defaultCloseButton, dismissOnBackdropTap: true, theme: "system")
+private let defaultBackdrop = EmojiBackdropOptions(color: "#00000066", blur: 0)
+private let autoOptions = EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, backdrop: defaultBackdrop, dismissOnBackdropTap: true, theme: "system")
+private let webOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: defaultCloseButton, backdrop: defaultBackdrop, dismissOnBackdropTap: true, theme: "system")
 
 /// A factory that captures the listener/handle/options passed to it so tests can drive them manually.
 private final class FakeEmojiKeyboardPresentationFactory: EmojiKeyboardPresentationFactory {
     weak var capturedListener: EmojiKeyboardPresentationListener?
     var lastHandle: FakeEmojiKeyboardPresentationHandle?
     var lastCloseButtonOptions: EmojiCloseButtonOptions?
+    var lastBackdropOptions: EmojiBackdropOptions?
     var lastDismissOnBackdropTap: Bool?
     var lastTheme: String?
     var createCount = 0
@@ -18,6 +20,7 @@ private final class FakeEmojiKeyboardPresentationFactory: EmojiKeyboardPresentat
     func create(
         hostViewController: UIViewController,
         closeButtonOptions: EmojiCloseButtonOptions,
+        backdropOptions: EmojiBackdropOptions,
         dismissOnBackdropTap: Bool,
         theme: String,
         listener: EmojiKeyboardPresentationListener
@@ -25,6 +28,7 @@ private final class FakeEmojiKeyboardPresentationFactory: EmojiKeyboardPresentat
         createCount += 1
         capturedListener = listener
         lastCloseButtonOptions = closeButtonOptions
+        lastBackdropOptions = backdropOptions
         lastDismissOnBackdropTap = dismissOnBackdropTap
         lastTheme = theme
         let handle = FakeEmojiKeyboardPresentationHandle()
@@ -276,7 +280,7 @@ final class NativeEmojiPickerPresenterTests: XCTestCase {
 
         let closeButton = EmojiCloseButtonOptions(size: "small", position: "left", hidden: true)
         presenter.present(
-            options: EmojiPickerPresentOptions(presentation: "auto", closeButton: closeButton, dismissOnBackdropTap: false, theme: "system")
+            options: EmojiPickerPresentOptions(presentation: "auto", closeButton: closeButton, backdrop: defaultBackdrop, dismissOnBackdropTap: false, theme: "system")
         ) { _ in }
         pumpMainQueue()
 
@@ -284,6 +288,24 @@ final class NativeEmojiPickerPresenterTests: XCTestCase {
         XCTAssertEqual(factory.lastCloseButtonOptions?.position, "left")
         XCTAssertEqual(factory.lastCloseButtonOptions?.hidden, true)
         XCTAssertEqual(factory.lastDismissOnBackdropTap, false)
+    }
+
+    func testBackdropOptionsAreForwardedToFactory() {
+        let factory = FakeEmojiKeyboardPresentationFactory()
+        let presenter = NativeEmojiPickerPresenter(
+            hostViewControllerProvider: { UIViewController() },
+            factory: factory,
+            availabilityChecker: { _ in true }
+        )
+
+        let backdrop = EmojiBackdropOptions(color: "#112233aa", blur: 8)
+        presenter.present(
+            options: EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, backdrop: backdrop, dismissOnBackdropTap: true, theme: "system")
+        ) { _ in }
+        pumpMainQueue()
+
+        XCTAssertEqual(factory.lastBackdropOptions?.color, "#112233aa")
+        XCTAssertEqual(factory.lastBackdropOptions?.blur, 8)
     }
 
     func testThemeIsForwardedToFactory() {
@@ -295,7 +317,7 @@ final class NativeEmojiPickerPresenterTests: XCTestCase {
         )
 
         presenter.present(
-            options: EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, dismissOnBackdropTap: true, theme: "dark")
+            options: EmojiPickerPresentOptions(presentation: "auto", closeButton: defaultCloseButton, backdrop: defaultBackdrop, dismissOnBackdropTap: true, theme: "dark")
         ) { _ in }
         pumpMainQueue()
 

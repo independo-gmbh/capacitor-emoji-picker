@@ -10,12 +10,23 @@ struct EmojiCloseButtonOptions {
     let hidden: Bool
 }
 
+/// Backdrop configuration for a single `present()` call, mirroring Android's
+/// `EmojiBackdropOptions` POJO.
+struct EmojiBackdropOptions {
+    /// Validated `#RGB`/`#RRGGBB`/`#RRGGBBAA` hex string.
+    let color: String
+    /// Blur radius in px; bucketed to the nearest `UIBlurEffect.Style` (there is no continuous
+    /// blur-radius API), see `DefaultEmojiKeyboardPresentationFactory`.
+    let blur: Int
+}
+
 /// Options for a single `present()` call, forwarded from the JS layer down to whichever
 /// presenter/factory ends up handling it.
 struct EmojiPickerPresentOptions {
     /// `"auto"` or `"web"`.
     let presentation: String
     let closeButton: EmojiCloseButtonOptions
+    let backdrop: EmojiBackdropOptions
     /// Only consulted by presenters that render a close affordance; ignored elsewhere.
     let dismissOnBackdropTap: Bool
     /// `"system"`, `"light"`, or `"dark"`.

@@ -3,6 +3,7 @@ package app.independo.capacitoremojipicker.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import app.independo.capacitoremojipicker.core.EmojiBackdropOptions;
 import app.independo.capacitoremojipicker.core.EmojiCloseButtonOptions;
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 import app.independo.capacitoremojipicker.core.EmojiPickerResult;
@@ -15,10 +16,19 @@ public class EmojiPickerServiceTest {
     /** A presenter that never calls back, simulating a picker that is still active. */
     private static class PendingPresenter implements EmojiPickerPresenter {
         EmojiPickerCallback capturedCallback;
+        EmojiBackdropOptions capturedBackdrop;
 
         @Override
-        public void present(String presentation, boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, String theme, EmojiPickerCallback callback) {
+        public void present(
+            String presentation,
+            boolean dismissOnBackdropTap,
+            EmojiCloseButtonOptions closeButton,
+            EmojiBackdropOptions backdrop,
+            String theme,
+            EmojiPickerCallback callback
+        ) {
             this.capturedCallback = callback;
+            this.capturedBackdrop = backdrop;
         }
     }
 
@@ -27,7 +37,7 @@ public class EmojiPickerServiceTest {
         PendingPresenter presenter = new PendingPresenter();
         EmojiPickerService service = new EmojiPickerService(presenter);
 
-        service.present("auto", true, null, "system", new EmojiPickerCallback() {
+        service.present("auto", true, null, null, "system", new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 
@@ -36,7 +46,7 @@ public class EmojiPickerServiceTest {
         });
 
         String[] secondCallErrorCode = new String[1];
-        service.present("auto", true, null, "system", new EmojiPickerCallback() {
+        service.present("auto", true, null, null, "system", new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 
@@ -55,7 +65,7 @@ public class EmojiPickerServiceTest {
         EmojiPickerService service = new EmojiPickerService(presenter);
 
         String[] firstResultEmoji = new String[1];
-        service.present("auto", true, null, "system", new EmojiPickerCallback() {
+        service.present("auto", true, null, null, "system", new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {
                 firstResultEmoji[0] = result.getEmoji();
@@ -69,7 +79,7 @@ public class EmojiPickerServiceTest {
         assertEquals("😀", firstResultEmoji[0]);
 
         String[] secondErrorCode = new String[1];
-        service.present("auto", true, null, "system", new EmojiPickerCallback() {
+        service.present("auto", true, null, null, "system", new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 
@@ -80,5 +90,22 @@ public class EmojiPickerServiceTest {
         });
 
         assertNull(secondErrorCode[0]);
+    }
+
+    @Test
+    public void forwardsBackdropOptionsToThePresenter() {
+        PendingPresenter presenter = new PendingPresenter();
+        EmojiPickerService service = new EmojiPickerService(presenter);
+        EmojiBackdropOptions backdrop = new EmojiBackdropOptions("#112233aa", 8);
+
+        service.present("auto", true, null, backdrop, "system", new EmojiPickerCallback() {
+            @Override
+            public void onResult(EmojiPickerResult result) {}
+
+            @Override
+            public void onError(String code) {}
+        });
+
+        assertEquals(backdrop, presenter.capturedBackdrop);
     }
 }

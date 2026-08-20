@@ -90,6 +90,20 @@ const { emoji } = await EmojiPicker.present({
 });
 ```
 
+Customize the backdrop shown behind the picker:
+
+```typescript
+const { emoji } = await EmojiPicker.present({
+    backdrop: { color: '#000000cc', blur: 8 },
+});
+```
+
+`color` is a CSS hex string; the alpha channel controls darkness and applies consistently across
+web, Android, and iOS. `blur` (px) mirrors CSS `backdrop-filter: blur()` on web and is approximated
+on iOS by mapping to the nearest system blur material (there's no continuous-radius blur API); it
+has no visual effect on Android, which has no API to blur what's behind a dialog window - the value
+is still accepted there for cross-platform option compatibility.
+
 ## Platform behavior
 
 With the default `presentation: 'auto'`:
@@ -189,6 +203,7 @@ Options for presenting the emoji picker.
 | -------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
 | **`presentation`**         | <code><a href="#emojipickerpresentation">EmojiPickerPresentation</a></code>             | `auto`: prefer native/system UI and fall back to the web picker when native presentation is not available or fails. `web`: always use the web picker, including inside Capacitor native apps.                                                                                                                                                                                                                         | <code>'auto'</code>   |
 | **`closeButton`**          | <code><a href="#emojipickerclosebuttonoptions">EmojiPickerCloseButtonOptions</a></code> | Configures the close button rendered above the iOS keyboard/the web picker sheet (iOS has no system-provided one). Ignored on Android.                                                                                                                                                                                                                                                                                |                       |
+| **`backdrop`**             | <code><a href="#emojipickerbackdropoptions">EmojiPickerBackdropOptions</a></code>       | Configures the dimming/blur shown behind the picker.                                                                                                                                                                                                                                                                                                                                                                  |                       |
 | **`dismissOnBackdropTap`** | <code>boolean</code>                                                                    | Dismiss the picker when the user taps the transparent area outside the keyboard/button (iOS) or the scrim outside the picker sheet (Android and web). On iOS and web, if `closeButton.hidden` is `true`, this is treated as `true` regardless of the value passed here, so the user always has a way to dismiss the picker.                                                                                           | <code>true</code>     |
 | **`theme`**                | <code><a href="#emojipickertheme">EmojiPickerTheme</a></code>                           | `system`: follows the OS/app appearance setting. `light` / `dark`: forces the picker's appearance regardless of the system setting. On iOS native presentation, this also sets `keyboardAppearance` on the underlying text input, which is the mechanism the system emoji keyboard itself honors (separate from the app's own `overrideUserInterfaceStyle`, which only themes the plugin's own overlay/close button). | <code>'system'</code> |
 
@@ -202,6 +217,16 @@ Configures the close button rendered above the iOS native emoji keyboard/the web
 | **`size`**     | <code>'xSmall' \| 'small' \| 'medium' \| 'large'</code> | `xSmall`: 24pt, `small`: 32pt, `medium`: 48pt, `large`: 64pt.                                                                                      | <code>'medium'</code> |
 | **`position`** | <code>'left' \| 'center' \| 'right'</code>              | Which side of the keyboard the button docks to.                                                                                                    | <code>'right'</code>  |
 | **`hidden`**   | <code>boolean</code>                                    | Hides the built-in close button. See <a href="#emojipickeroptions">`EmojiPickerOptions.dismissOnBackdropTap`</a> for the safety net this triggers. | <code>false</code>    |
+
+
+#### EmojiPickerBackdropOptions
+
+Configures the dimming/blur shown behind the picker.
+
+| Prop        | Type                | Description                                                                                                                                                                                                                                                                                                                                     | Default                  |
+| ----------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| **`color`** | <code>string</code> | CSS hex color for the backdrop; the alpha channel controls darkness (e.g. `'#000000cc'` is 80% black, `'#00000000'` is no darkening). Supports `#RGB`, `#RRGGBB`, and `#RRGGBBAA`. Falls back to the default on an invalid value.                                                                                                               | <code>'#00000066'</code> |
+| **`blur`**  | <code>number</code> | Backdrop blur radius in px, analogous to CSS `backdrop-filter: blur()`. Web applies this directly. iOS approximates it by mapping the value to the nearest system blur material (there is no continuous-radius blur API). Android has no API to blur content behind a dialog window, so this option is accepted but has no visual effect there. | <code>0</code>           |
 
 
 ### Type Aliases

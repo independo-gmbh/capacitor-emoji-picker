@@ -3,6 +3,7 @@ package app.independo.capacitoremojipicker.presenter;
 import android.app.Activity;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
+import app.independo.capacitoremojipicker.core.EmojiBackdropOptions;
 import app.independo.capacitoremojipicker.core.EmojiCloseButtonOptions;
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 import app.independo.capacitoremojipicker.core.EmojiPickerResult;
@@ -63,6 +64,7 @@ public class NativeEmojiPickerPresenter implements EmojiPickerPresenter {
         String presentation,
         boolean dismissOnBackdropTap,
         EmojiCloseButtonOptions closeButton,
+        EmojiBackdropOptions backdrop,
         String theme,
         EmojiPickerCallback callback
     ) {
@@ -74,7 +76,7 @@ public class NativeEmojiPickerPresenter implements EmojiPickerPresenter {
         }
 
         Activity activity = activityProvider.get();
-        Runnable work = () -> presentOnUiThread(activity, dismissOnBackdropTap, theme, callback);
+        Runnable work = () -> presentOnUiThread(activity, dismissOnBackdropTap, backdrop, theme, callback);
         // Capacitor invokes @PluginMethod handlers on a background "CapacitorPlugins" thread, but
         // BottomSheetDialog#show() and Lifecycle#addObserver() are UI-thread-only APIs. Hop onto the
         // UI thread whenever we have a real Activity to hop through; a null Activity means there's no
@@ -86,7 +88,13 @@ public class NativeEmojiPickerPresenter implements EmojiPickerPresenter {
         }
     }
 
-    private void presentOnUiThread(Activity activity, boolean dismissOnBackdropTap, String theme, EmojiPickerCallback callback) {
+    private void presentOnUiThread(
+        Activity activity,
+        boolean dismissOnBackdropTap,
+        EmojiBackdropOptions backdrop,
+        String theme,
+        EmojiPickerCallback callback
+    ) {
         if (!availabilityChecker.isAvailable(activity)) {
             callback.onError(ErrorCodes.NATIVE_UNAVAILABLE);
             return;
@@ -104,7 +112,7 @@ public class NativeEmojiPickerPresenter implements EmojiPickerPresenter {
         Presentation presentation = new Presentation(callback);
         LifecycleOwner lifecycleOwner = (activity instanceof LifecycleOwner) ? (LifecycleOwner) activity : null;
         current = presentation;
-        presentation.start(activity, dismissOnBackdropTap, theme, lifecycleOwner);
+        presentation.start(activity, dismissOnBackdropTap, backdrop, theme, lifecycleOwner);
     }
 
     /**
@@ -124,7 +132,13 @@ public class NativeEmojiPickerPresenter implements EmojiPickerPresenter {
             this.callback = callback;
         }
 
-        void start(Activity activity, boolean dismissOnBackdropTap, String theme, LifecycleOwner lifecycleOwner) {
+        void start(
+            Activity activity,
+            boolean dismissOnBackdropTap,
+            EmojiBackdropOptions backdrop,
+            String theme,
+            LifecycleOwner lifecycleOwner
+        ) {
             this.lifecycleOwner = lifecycleOwner;
 
             EmojiPickerDialogFactory.EmojiPickerDialogHandle createdHandle;
@@ -132,6 +146,7 @@ public class NativeEmojiPickerPresenter implements EmojiPickerPresenter {
                 createdHandle = dialogFactory.create(
                     activity,
                     dismissOnBackdropTap,
+                    backdrop,
                     theme,
                     new EmojiPickerDialogFactory.Listener() {
                         @Override

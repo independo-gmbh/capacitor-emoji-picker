@@ -3,7 +3,8 @@ import XCTest
 @testable import EmojiPicker
 
 private let closeButton = EmojiCloseButtonOptions(size: "medium", position: "right", hidden: false)
-private let webOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, dismissOnBackdropTap: true, theme: "system")
+private let defaultBackdrop = EmojiBackdropOptions(color: "#00000066", blur: 0)
+private let webOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, backdrop: defaultBackdrop, dismissOnBackdropTap: true, theme: "system")
 
 /// Captures every script evaluated instead of touching a real `WKWebView`.
 private final class FakeJsEvaluator {
@@ -68,6 +69,8 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
         XCTAssertTrue(js.contains("\"size\":\"medium\""))
         XCTAssertTrue(js.contains("\"position\":\"right\""))
         XCTAssertTrue(js.contains("\"hidden\":false"))
+        XCTAssertTrue(js.contains("\"color\":\"#00000066\""))
+        XCTAssertTrue(js.contains("\"blur\":0"))
         XCTAssertTrue(js.contains("\"theme\":\"system\""))
     }
 
@@ -75,7 +78,7 @@ final class WebFallbackEmojiPickerPresenterTests: XCTestCase {
         let evaluator = FakeJsEvaluator()
         let scheduler = FakeScheduler()
         let presenter = WebFallbackEmojiPickerPresenter(jsEvaluator: evaluator.eval, scheduler: scheduler.schedule)
-        let darkOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, dismissOnBackdropTap: true, theme: "dark")
+        let darkOptions = EmojiPickerPresentOptions(presentation: "web", closeButton: closeButton, backdrop: defaultBackdrop, dismissOnBackdropTap: true, theme: "dark")
 
         presenter.present(options: darkOptions) { _ in }
         flushMainQueue()
