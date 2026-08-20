@@ -383,6 +383,81 @@ describe('WebEmojiPickerPresenter', () => {
         await resultPromise;
     });
 
+    describe('backdrop', () => {
+        function backdropRuleFor(dialog: HTMLElement): string {
+            const backdropClass = Array.from(dialog.classList).find((c) => c.startsWith('emoji-picker-backdrop-'));
+            const style = Array.from(document.head.querySelectorAll('style')).find((s) =>
+                s.textContent?.includes(`.${backdropClass}::backdrop`)
+            );
+            return style?.textContent ?? '';
+        }
+
+        it('defaults to the standard color with no blur', async () => {
+            const picker = createFakePicker();
+            const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+            const resultPromise = presenter.present();
+            await flush();
+
+            const dialog = document.body.firstElementChild as HTMLElement;
+            const rule = backdropRuleFor(dialog);
+            expect(rule).toContain('background: #00000066;');
+            // Explicit `none`, not omitted: some browsers apply their own default dialog backdrop
+            // blur that would otherwise leak through when the caller doesn't request one.
+            expect(rule).toContain('backdrop-filter: none;');
+
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            await advancePastCloseAnimation();
+            await resultPromise;
+        });
+
+        it('applies a caller-provided color and blur', async () => {
+            const picker = createFakePicker();
+            const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+            const resultPromise = presenter.present({ backdrop: { color: '#112233aa', blur: 8 } });
+            await flush();
+
+            const dialog = document.body.firstElementChild as HTMLElement;
+            const rule = backdropRuleFor(dialog);
+            expect(rule).toContain('background: #112233aa;');
+            expect(rule).toContain('backdrop-filter: blur(8px);');
+
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            await advancePastCloseAnimation();
+            await resultPromise;
+        });
+
+        it('falls back to the default color on an invalid value', async () => {
+            const picker = createFakePicker();
+            const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+            const resultPromise = presenter.present({ backdrop: { color: 'not-a-color' } });
+            await flush();
+
+            const dialog = document.body.firstElementChild as HTMLElement;
+            expect(backdropRuleFor(dialog)).toContain('background: #00000066;');
+
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            await advancePastCloseAnimation();
+            await resultPromise;
+        });
+
+        it('removes the injected backdrop style once the picker closes', async () => {
+            const picker = createFakePicker();
+            const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });
+
+            const resultPromise = presenter.present();
+            await flush();
+
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            await advancePastCloseAnimation();
+            await resultPromise;
+
+            expect(document.head.querySelector(`style:not(#${'emoji-picker-sheet-styles'})`)).toBeNull();
+        });
+    });
+
     it('settles with a null emoji when the abort signal fires', async () => {
         const picker = createFakePicker();
         const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker) });

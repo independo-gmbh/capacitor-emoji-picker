@@ -1,6 +1,7 @@
 package app.independo.capacitoremojipicker.presenter;
 
 import android.app.Activity;
+import app.independo.capacitoremojipicker.core.EmojiBackdropOptions;
 
 /**
  * Builds the native picker UI.
@@ -11,7 +12,13 @@ import android.app.Activity;
 public interface EmojiPickerDialogFactory {
 
     /** Creates and shows the dialog for the given activity, reporting outcomes via {@code listener}. */
-    EmojiPickerDialogHandle create(Activity activity, boolean dismissOnBackdropTap, String theme, Listener listener);
+    EmojiPickerDialogHandle create(
+        Activity activity,
+        boolean dismissOnBackdropTap,
+        EmojiBackdropOptions backdrop,
+        String theme,
+        Listener listener
+    );
 
     /** Callback used by the factory's dialog implementation to report selection/dismissal. */
     interface Listener {

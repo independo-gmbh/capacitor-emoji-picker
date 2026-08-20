@@ -24,6 +24,7 @@ final class DefaultEmojiKeyboardPresentationFactory: EmojiKeyboardPresentationFa
     func create(
         hostViewController: UIViewController,
         closeButtonOptions: EmojiCloseButtonOptions,
+        backdropOptions: EmojiBackdropOptions,
         dismissOnBackdropTap: Bool,
         theme: String,
         listener: EmojiKeyboardPresentationListener
@@ -38,6 +39,7 @@ final class DefaultEmojiKeyboardPresentationFactory: EmojiKeyboardPresentationFa
         let container = EmojiKeyboardContainerViewController(
             listener: listener,
             closeButtonOptions: closeButtonOptions,
+            backdropOptions: backdropOptions,
             dismissOnBackdropTap: dismissOnBackdropTap,
             theme: theme
         )
@@ -134,8 +136,19 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
     private static let closeButtonKeyboardGap: CGFloat = 12
     private static let closeButtonEdgeInset: CGFloat = 16
 
+    /// Bucket boundaries (px) mapping the continuous `blur` option onto the nearest system
+    /// material - there is no continuous-radius blur API on iOS. Values below the first threshold
+    /// get no blur view at all.
+    private static let blurStyleThresholds: [(maxPx: Int, style: UIBlurEffect.Style)] = [
+        (4, .systemUltraThinMaterial),
+        (10, .systemThinMaterial),
+        (18, .systemMaterial),
+        (Int.max, .systemThickMaterial),
+    ]
+
     private weak var listener: EmojiKeyboardPresentationListener?
     private let closeButtonOptions: EmojiCloseButtonOptions
+    private let backdropOptions: EmojiBackdropOptions
     /// `dismissOnBackdropTap` OR'd with `closeButtonOptions.hidden`: a hidden close button must
     /// never leave the user with zero ways to dismiss the keyboard, so hiding it force-enables
     /// backdrop-tap-to-dismiss regardless of what was explicitly requested.
@@ -145,6 +158,9 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
     /// after `viewDidLoad` - mirrors the class-level visibility rationale above.
     let emojiField = EmojiTextField()
     private let closeButton: UIButton
+    /// Full-bleed dimming/blur view inserted behind `emojiField`/`closeButton`. Internal so tests
+    /// can assert its color/blur and its position in the tap-gesture's hit-testing.
+    let backdropView = UIView()
     private var modeChangeObserver: NSObjectProtocol?
     private var verificationTimeoutWorkItem: DispatchWorkItem?
     private var hasReportedOutcome = false
@@ -152,11 +168,13 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
     init(
         listener: EmojiKeyboardPresentationListener,
         closeButtonOptions: EmojiCloseButtonOptions,
+        backdropOptions: EmojiBackdropOptions,
         dismissOnBackdropTap: Bool,
         theme: String
     ) {
         self.listener = listener
         self.closeButtonOptions = closeButtonOptions
+        self.backdropOptions = backdropOptions
         self.effectiveDismissOnBackdropTap = dismissOnBackdropTap || closeButtonOptions.hidden
         self.theme = theme
         self.closeButton = Self.makeCloseButton(options: closeButtonOptions)
@@ -171,6 +189,8 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
+
+        setUpBackdrop()
 
         emojiField.delegate = self
         emojiField.alpha = 0
@@ -308,6 +328,51 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
         }
     }
 
+    /// Inserts the dimming/blur view as the first subview, behind `emojiField`/`closeButton`.
+    /// Must run before those are added, since insertion order determines z-order.
+    private func setUpBackdrop() {
+        backdropView.translatesAutoresizingMaskIntoConstraints = false
+        backdropView.backgroundColor = .clear
+        view.insertSubview(backdropView, at: 0)
+        NSLayoutConstraint.activate([
+            backdropView.topAnchor.constraint(equalTo: view.topAnchor),
+            backdropView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            backdropView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backdropView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+
+        if let blurStyle = Self.blurStyle(forPx: backdropOptions.blur) {
+            let blurView = UIVisualEffectView(effect: UIBlurEffect(style: blurStyle))
+            blurView.translatesAutoresizingMaskIntoConstraints = false
+            blurView.isUserInteractionEnabled = false
+            backdropView.addSubview(blurView)
+            NSLayoutConstraint.activate([
+                blurView.topAnchor.constraint(equalTo: backdropView.topAnchor),
+                blurView.bottomAnchor.constraint(equalTo: backdropView.bottomAnchor),
+                blurView.leadingAnchor.constraint(equalTo: backdropView.leadingAnchor),
+                blurView.trailingAnchor.constraint(equalTo: backdropView.trailingAnchor),
+            ])
+        }
+
+        let tintView = UIView()
+        tintView.translatesAutoresizingMaskIntoConstraints = false
+        tintView.backgroundColor = UIColor(emojiPickerBackdropHex: backdropOptions.color)
+        tintView.isUserInteractionEnabled = false
+        backdropView.addSubview(tintView)
+        NSLayoutConstraint.activate([
+            tintView.topAnchor.constraint(equalTo: backdropView.topAnchor),
+            tintView.bottomAnchor.constraint(equalTo: backdropView.bottomAnchor),
+            tintView.leadingAnchor.constraint(equalTo: backdropView.leadingAnchor),
+            tintView.trailingAnchor.constraint(equalTo: backdropView.trailingAnchor),
+        ])
+    }
+
+    /// Maps a px blur radius to the nearest system material, or `nil` for no blur (`blur <= 0`).
+    private static func blurStyle(forPx px: Int) -> UIBlurEffect.Style? {
+        guard px > 0 else { return nil }
+        return blurStyleThresholds.first { px <= $0.maxPx }?.style
+    }
+
     /// Adds a tap gesture that dismisses when the user taps the transparent backdrop - anywhere
     /// in `view` that isn't a subview (the close button, primarily). The system keyboard itself
     /// lives in a separate window/responder chain, so this can't intercept its touches.
@@ -321,9 +386,10 @@ final class EmojiKeyboardContainerViewController: UIViewController, UITextFieldD
     // MARK: UIGestureRecognizerDelegate
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        // Only recognize taps landing directly on the backdrop view itself, not on subviews
-        // (the close button handles its own taps via its target/action).
-        touch.view === view
+        // Only recognize taps landing directly on the backdrop (`view` itself, or the dimming/blur
+        // view now inserted beneath the other subviews), not on subviews like the close button
+        // (which handles its own taps via its target/action).
+        touch.view === view || touch.view === backdropView
     }
 
     @objc private func closeTapped() {

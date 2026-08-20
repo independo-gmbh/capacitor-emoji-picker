@@ -1,5 +1,6 @@
 package app.independo.capacitoremojipicker.service;
 
+import app.independo.capacitoremojipicker.core.EmojiBackdropOptions;
 import app.independo.capacitoremojipicker.core.EmojiCloseButtonOptions;
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 import app.independo.capacitoremojipicker.core.EmojiPickerResult;
@@ -21,6 +22,7 @@ public class EmojiPickerService {
         String presentation,
         boolean dismissOnBackdropTap,
         EmojiCloseButtonOptions closeButton,
+        EmojiBackdropOptions backdrop,
         String theme,
         EmojiPickerCallback callback
     ) {
@@ -34,6 +36,7 @@ public class EmojiPickerService {
             presentation,
             dismissOnBackdropTap,
             closeButton,
+            backdrop,
             theme,
             new EmojiPickerCallback() {
                 @Override

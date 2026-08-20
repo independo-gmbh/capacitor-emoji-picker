@@ -25,6 +25,10 @@ export interface EmojiPickerOptions {
      */
     closeButton?: EmojiPickerCloseButtonOptions;
     /**
+     * Configures the dimming/blur shown behind the picker.
+     */
+    backdrop?: EmojiPickerBackdropOptions;
+    /**
      * Dismiss the picker when the user taps the transparent area outside the keyboard/button (iOS)
      * or the scrim outside the picker sheet (Android and web).
      *
@@ -66,6 +70,28 @@ export interface EmojiPickerCloseButtonOptions {
      * @default false
      */
     hidden?: boolean;
+}
+
+/**
+ * Configures the dimming/blur shown behind the picker.
+ */
+export interface EmojiPickerBackdropOptions {
+    /**
+     * CSS hex color for the backdrop; the alpha channel controls darkness (e.g. `'#000000cc'` is
+     * 80% black, `'#00000000'` is no darkening). Supports `#RGB`, `#RRGGBB`, and `#RRGGBBAA`.
+     * Falls back to the default on an invalid value.
+     * @default '#00000066'
+     */
+    color?: string;
+    /**
+     * Backdrop blur radius in px, analogous to CSS `backdrop-filter: blur()`.
+     *
+     * Web applies this directly. iOS approximates it by mapping the value to the nearest system
+     * blur material (there is no continuous-radius blur API). Android has no API to blur content
+     * behind a dialog window, so this option is accepted but has no visual effect there.
+     * @default 0
+     */
+    blur?: number;
 }
 
 /**

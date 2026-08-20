@@ -22,6 +22,8 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
     private static let validCloseButtonSizes: Set<String> = ["xSmall", "small", "medium", "large"]
     private static let validCloseButtonPositions: Set<String> = ["left", "center", "right"]
     private static let validThemes: Set<String> = ["system", "light", "dark"]
+    private static let hexColorPattern = try! NSRegularExpression(pattern: "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
+    private static let defaultBackdropColor = "#00000066"
 
     /// Initializes dependencies after the plugin loads.
     public override func load() {
@@ -59,6 +61,9 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
         let closeButtonObject = call.getObject("closeButton")
         let size = closeButtonObject?["size"] as? String ?? "medium"
         let position = closeButtonObject?["position"] as? String ?? "right"
+        let backdropObject = call.getObject("backdrop")
+        let backdropColor = backdropObject?["color"] as? String ?? Self.defaultBackdropColor
+        let backdropBlur = backdropObject?["blur"] as? Int ?? 0
         let theme = call.getString("theme") ?? "system"
         let options = EmojiPickerPresentOptions(
             presentation: call.getString("presentation") ?? "auto",
@@ -66,6 +71,10 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
                 size: Self.validCloseButtonSizes.contains(size) ? size : "medium",
                 position: Self.validCloseButtonPositions.contains(position) ? position : "right",
                 hidden: closeButtonObject?["hidden"] as? Bool ?? false
+            ),
+            backdrop: EmojiBackdropOptions(
+                color: Self.isValidHexColor(backdropColor) ? backdropColor : Self.defaultBackdropColor,
+                blur: backdropBlur
             ),
             dismissOnBackdropTap: call.getBool("dismissOnBackdropTap") ?? true,
             theme: Self.validThemes.contains(theme) ? theme : "system"
@@ -78,5 +87,10 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
                 call.reject(error.code, error.code)
             }
         }
+    }
+
+    private static func isValidHexColor(_ value: String) -> Bool {
+        let range = NSRange(value.startIndex..<value.endIndex, in: value)
+        return hexColorPattern.firstMatch(in: value, range: range) != nil
     }
 }

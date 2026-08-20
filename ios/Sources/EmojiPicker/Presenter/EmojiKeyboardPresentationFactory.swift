@@ -13,6 +13,7 @@ protocol EmojiKeyboardPresentationFactory {
     func create(
         hostViewController: UIViewController,
         closeButtonOptions: EmojiCloseButtonOptions,
+        backdropOptions: EmojiBackdropOptions,
         dismissOnBackdropTap: Bool,
         theme: String,
         listener: EmojiKeyboardPresentationListener

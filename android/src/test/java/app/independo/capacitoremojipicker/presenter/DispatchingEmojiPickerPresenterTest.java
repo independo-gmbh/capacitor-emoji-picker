@@ -3,6 +3,7 @@ package app.independo.capacitoremojipicker.presenter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
+import app.independo.capacitoremojipicker.core.EmojiBackdropOptions;
 import app.independo.capacitoremojipicker.core.EmojiCloseButtonOptions;
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 import app.independo.capacitoremojipicker.core.EmojiPickerResult;
@@ -15,7 +16,14 @@ public class DispatchingEmojiPickerPresenterTest {
         int callCount;
 
         @Override
-        public void present(String presentation, boolean dismissOnBackdropTap, EmojiCloseButtonOptions closeButton, String theme, EmojiPickerCallback callback) {
+        public void present(
+            String presentation,
+            boolean dismissOnBackdropTap,
+            EmojiCloseButtonOptions closeButton,
+            EmojiBackdropOptions backdrop,
+            String theme,
+            EmojiPickerCallback callback
+        ) {
             lastPresentation = presentation;
             callCount++;
             callback.onResult(new EmojiPickerResult(null));
@@ -28,7 +36,7 @@ public class DispatchingEmojiPickerPresenterTest {
         RecordingPresenter webFallbackPresenter = new RecordingPresenter();
         DispatchingEmojiPickerPresenter dispatcher = new DispatchingEmojiPickerPresenter(nativePresenter, webFallbackPresenter);
 
-        dispatcher.present("auto", true, null, "system", new EmojiPickerCallback() {
+        dispatcher.present("auto", true, null, null, "system", new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 
@@ -46,7 +54,7 @@ public class DispatchingEmojiPickerPresenterTest {
         RecordingPresenter webFallbackPresenter = new RecordingPresenter();
         DispatchingEmojiPickerPresenter dispatcher = new DispatchingEmojiPickerPresenter(nativePresenter, webFallbackPresenter);
 
-        dispatcher.present("web", true, null, "system", new EmojiPickerCallback() {
+        dispatcher.present("web", true, null, null, "system", new EmojiPickerCallback() {
             @Override
             public void onResult(EmojiPickerResult result) {}
 

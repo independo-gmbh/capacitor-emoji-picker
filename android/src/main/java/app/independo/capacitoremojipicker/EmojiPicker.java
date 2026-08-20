@@ -1,6 +1,7 @@
 package app.independo.capacitoremojipicker;
 
 import android.webkit.ValueCallback;
+import app.independo.capacitoremojipicker.core.EmojiBackdropOptions;
 import app.independo.capacitoremojipicker.core.EmojiCloseButtonOptions;
 import app.independo.capacitoremojipicker.core.EmojiPickerCallback;
 import app.independo.capacitoremojipicker.core.EmojiPickerResult;
@@ -18,6 +19,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /** Capacitor bridge for the EmojiPicker plugin. */
 @CapacitorPlugin(name = "EmojiPicker")
@@ -28,6 +30,8 @@ public class EmojiPicker extends Plugin {
     private static final Set<String> VALID_CLOSE_BUTTON_POSITIONS =
         new HashSet<>(Arrays.asList("left", "center", "right"));
     private static final Set<String> VALID_THEMES = new HashSet<>(Arrays.asList("system", "light", "dark"));
+    private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$");
+    private static final String DEFAULT_BACKDROP_COLOR = "#00000066";
 
     /** Service layer that owns presentation flow and concurrency guarding. */
     private EmojiPickerService service;
@@ -61,11 +65,18 @@ public class EmojiPicker extends Plugin {
             VALID_CLOSE_BUTTON_POSITIONS.contains(position) ? position : "right",
             closeButtonObject != null && closeButtonObject.optBoolean("hidden", false)
         );
+        JSObject backdropObject = call.getObject("backdrop");
+        String backdropColor = backdropObject != null ? backdropObject.getString("color", DEFAULT_BACKDROP_COLOR) : DEFAULT_BACKDROP_COLOR;
+        EmojiBackdropOptions backdrop = new EmojiBackdropOptions(
+            backdropColor != null && HEX_COLOR_PATTERN.matcher(backdropColor).matches() ? backdropColor : DEFAULT_BACKDROP_COLOR,
+            backdropObject != null ? backdropObject.optInt("blur", 0) : 0
+        );
         String theme = call.getString("theme", "system");
         service.present(
             presentation,
             dismissOnBackdropTap,
             closeButton,
+            backdrop,
             VALID_THEMES.contains(theme) ? theme : "system",
             new EmojiPickerCallback() {
                 @Override
