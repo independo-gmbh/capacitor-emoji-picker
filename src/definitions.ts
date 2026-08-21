@@ -48,6 +48,25 @@ export interface EmojiPickerOptions {
      * @default 'system'
      */
     theme?: EmojiPickerTheme;
+    /**
+     * BCP-47-ish locale code for the emoji dataset/UI strings (e.g. `'en'`, `'de'`, `'fr'`).
+     *
+     * Web only — ignored on iOS/Android, which follow the device locale automatically via the
+     * system emoji keyboard/`androidx.emoji2.emojipicker`. `'en'`, `'de'`, `'es'`, `'fr'`, and
+     * `'ja'` are bundled and available offline; any other locale is fetched from a CDN at
+     * present-time unless registered ahead of time via `registerEmojiLocale`.
+     * @default 'en'
+     */
+    locale?: string;
+    /**
+     * Seeds the picker's starting skin tone (`0` = none/default, `1`-`5` = light through dark).
+     *
+     * Web only — iOS/Android use the OS's own last-selected skin tone. On web, the underlying
+     * picker persists the user's own choice after this via IndexedDB (keyed by `locale`), so this
+     * only affects the very first render for a given locale/origin.
+     * @default 0
+     */
+    skinTone?: 0 | 1 | 2 | 3 | 4 | 5;
 }
 
 /**

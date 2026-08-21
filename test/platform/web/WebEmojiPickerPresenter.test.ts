@@ -12,7 +12,15 @@ function dialogCount(): number {
     return document.body.children.length;
 }
 
-const flush = () => Promise.resolve();
+/**
+ * `present()` now has two internal `await`s before the dialog is appended (picker creation, then
+ * data-source resolution), so draining a single microtask isn't enough to reach that point.
+ */
+const flush = async (): Promise<void> => {
+    for (let i = 0; i < 10; i += 1) {
+        await Promise.resolve();
+    }
+};
 
 /** Advances past the presenter's close-animation timer and lets its `finish` microtask run. */
 async function advancePastCloseAnimation(): Promise<void> {
@@ -482,5 +490,57 @@ describe('WebEmojiPickerPresenter', () => {
 
         expect(result).toEqual({ emoji: null });
         expect(dialogCount()).toBe(0);
+    });
+
+    it('defaults to the "en" locale and sets it on the picker element', async () => {
+        const picker = createFakePicker();
+        const presenter = new WebEmojiPickerPresenter({
+            createPickerElement: () => Promise.resolve(picker),
+            getDataSourceUrl: (locale) => Promise.resolve(`blob:${locale}`),
+        });
+
+        presenter.present();
+        await flush();
+
+        expect(picker.locale).toBe('en');
+        expect(picker.dataSource).toBe('blob:en');
+    });
+
+    it('sets a custom locale on the picker element', async () => {
+        const picker = createFakePicker();
+        const presenter = new WebEmojiPickerPresenter({
+            createPickerElement: () => Promise.resolve(picker),
+            getDataSourceUrl: (locale) => Promise.resolve(`blob:${locale}`),
+        });
+
+        presenter.present({ locale: 'de' });
+        await flush();
+
+        expect(picker.locale).toBe('de');
+        expect(picker.dataSource).toBe('blob:de');
+    });
+
+    it('seeds the preferred skin tone before creating the picker when skinTone is set', async () => {
+        const picker = createFakePicker();
+        const seedSkinTone = jest.fn().mockResolvedValue(undefined);
+        const createPickerElement = jest.fn().mockResolvedValue(picker);
+        const presenter = new WebEmojiPickerPresenter({ createPickerElement, seedSkinTone });
+
+        presenter.present({ locale: 'de', skinTone: 4 });
+        await flush();
+
+        expect(seedSkinTone).toHaveBeenCalledWith('de', 4);
+        expect(seedSkinTone.mock.invocationCallOrder[0]).toBeLessThan(createPickerElement.mock.invocationCallOrder[0]);
+    });
+
+    it('does not seed a skin tone when the option is omitted', async () => {
+        const picker = createFakePicker();
+        const seedSkinTone = jest.fn().mockResolvedValue(undefined);
+        const presenter = new WebEmojiPickerPresenter({ createPickerElement: () => Promise.resolve(picker), seedSkinTone });
+
+        presenter.present();
+        await flush();
+
+        expect(seedSkinTone).not.toHaveBeenCalled();
     });
 });

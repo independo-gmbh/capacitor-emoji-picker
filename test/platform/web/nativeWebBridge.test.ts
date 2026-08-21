@@ -5,7 +5,16 @@ import { WebEmojiPickerPresenter } from '../../../src/platform/web/WebEmojiPicke
 import { registerNativeWebBridge } from '../../../src/platform/web/nativeWebBridge';
 
 const ANIMATION_MS = 200;
-const flush = () => Promise.resolve();
+/**
+ * `WebEmojiPickerPresenter.present()` has multiple internal `await`s before the dialog is
+ * appended (picker creation, then data-source resolution), so draining a single microtask isn't
+ * enough to reach that point.
+ */
+const flush = async (): Promise<void> => {
+    for (let i = 0; i < 10; i += 1) {
+        await Promise.resolve();
+    }
+};
 
 async function advancePastCloseAnimation(): Promise<void> {
     jest.advanceTimersByTime(ANIMATION_MS);
