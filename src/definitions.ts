@@ -53,8 +53,24 @@ export interface EmojiPickerOptions {
      *
      * Web only — ignored on iOS/Android, which follow the device locale automatically via the
      * system emoji keyboard/`androidx.emoji2.emojipicker`. `'en'`, `'de'`, `'es'`, `'fr'`, and
-     * `'ja'` are bundled and available offline; any other locale is fetched from a CDN at
-     * present-time unless registered ahead of time via `registerEmojiLocale`.
+     * `'ja'` are bundled and available offline by default; any other locale is fetched from a CDN
+     * at present-time unless registered ahead of time via `registerEmojiLocale`.
+     *
+     * Every locale `emoji-picker-element-data` ships is available as an individually importable
+     * loader (e.g. `enGbLocale`, `ptLocale`, `zhHantLocale`, ...) from
+     * `capacitor-emoji-picker/dist/esm/platform/web/locales`, so an app can register any of them
+     * offline without a CDN dependency by importing only the ones it needs:
+     * ```ts
+     * import { registerEmojiLocale } from 'capacitor-emoji-picker';
+     * import { ptLocale } from 'capacitor-emoji-picker/dist/esm/platform/web/locales';
+     * registerEmojiLocale('pt', await ptLocale());
+     * ```
+     * This is a deep import rather than a root-level export deliberately: the package root is
+     * also the standalone `dist/plugin.js` bundle's entry point, which inlines every dynamic
+     * import it can reach (there's no code-splitting in that single-file build) — re-exporting
+     * all 28 loaders from there would have pulled every locale's dataset into it. A bundler
+     * resolving this deep import still tree-shakes away every loader (and its underlying
+     * dataset) the app never imports.
      * @default 'en'
      */
     locale?: string;
