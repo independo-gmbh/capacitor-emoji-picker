@@ -18,4 +18,10 @@ describe('locales barrel', () => {
         expect(Array.isArray(data)).toBe(true);
         expect(data.length).toBeGreaterThan(0);
     });
+
+    it('carries its own locale code as a typed .locale property', () => {
+        expect(locales.ptLocale.locale).toBe('pt');
+        expect(locales.zhHantLocale.locale).toBe('zh-hant');
+        expect(locales.enLocale.locale).toBe('en');
+    });
 });

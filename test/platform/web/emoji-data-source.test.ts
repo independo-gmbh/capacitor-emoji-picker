@@ -23,15 +23,16 @@ describe('getEmojiDataSourceUrl', () => {
         expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
     });
 
-    it('resolves other bundled locales from their own lazy-loaded dataset', async () => {
-        const en = await getEmojiDataSourceUrl('en');
+    it('fetches a non-default, unregistered locale from the CDN rather than bundling it', async () => {
+        (fetch as jest.Mock).mockResolvedValue({ ok: true, json: () => Promise.resolve([{ from: 'cdn' }]) });
+
         const de = await getEmojiDataSourceUrl('de');
 
-        expect(en).not.toBe(de);
-        expect(fetch).not.toHaveBeenCalled();
+        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/de/'));
+        expect(de).toBe('blob:mock-url-1');
     });
 
-    it('prefers a registered locale over the bundled/CDN fallback', async () => {
+    it('prefers a registered locale over the CDN fallback', async () => {
         registerEmojiLocale('xx', [{ fake: true }]);
 
         const url = await getEmojiDataSourceUrl('xx');

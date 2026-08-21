@@ -1,3 +1,5 @@
+import { createLocaleLoader } from './create-locale-loader';
+
 /**
  * Lazily loads the Italian emoji dataset, so it code-splits into its own chunk.
  *
@@ -5,6 +7,4 @@
  * `en-gb`, `fr`, `ja`, `ru`, `sv`, `zh` have one); `cldr` produces the same normalized schema
  * from a different upstream annotation source, so it's used here instead.
  */
-export default async function loadItLocale(): Promise<unknown> {
-    return (await import('emoji-picker-element-data/it/cldr/data.json')).default;
-}
+export default createLocaleLoader('it', async () => (await import('emoji-picker-element-data/it/cldr/data.json')).default);

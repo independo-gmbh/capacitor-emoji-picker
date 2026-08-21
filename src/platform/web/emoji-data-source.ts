@@ -1,20 +1,7 @@
-import loadDeLocale from './locales/de';
 import loadEnLocale from './locales/en';
-import loadEsLocale from './locales/es';
-import loadFrLocale from './locales/fr';
-import loadJaLocale from './locales/ja';
 
 const DEFAULT_LOCALE = 'en';
 const EMOJI_PICKER_ELEMENT_DATA_VERSION = '^1';
-
-/** Locales bundled with the plugin and always available offline, loaded lazily per locale. */
-const DEFAULT_BUNDLED_LOCALES: Record<string, () => Promise<unknown>> = {
-    en: loadEnLocale,
-    de: loadDeLocale,
-    es: loadEsLocale,
-    fr: loadFrLocale,
-    ja: loadJaLocale,
-};
 
 /** Locales registered at runtime by the host app via `registerEmojiLocale`. */
 const registeredLocales = new Map<string, unknown>();
@@ -23,12 +10,14 @@ const registeredLocales = new Map<string, unknown>();
 const cachedDataSourceUrls = new Map<string, string>();
 
 /**
- * Registers emoji data for a locale that isn't in the plugin's default bundled set
- * (`en`, `de`, `es`, `fr`, `ja`), so it's used instead of falling back to a CDN fetch.
+ * Registers emoji data for a locale other than `'en'` (the only one bundled by default), so it's
+ * used instead of falling back to a CDN fetch.
  *
- * The host app is responsible for importing the dataset itself (typically from
- * `emoji-picker-element-data/<locale>/emojibase/data.json`), which lets its own bundler decide
- * whether to include it statically or split it into a lazy chunk.
+ * Pass a loader from `capacitor-emoji-picker/dist/esm/platform/web/locales` (e.g.
+ * `registerEmojiLocale(ptLocale.locale, await ptLocale())`) to pick from every locale
+ * `emoji-picker-element-data` ships, or supply the dataset yourself. Either way, the host app
+ * decides what to import, which lets its own bundler include it statically or split it into a
+ * lazy chunk as it sees fit.
  */
 export function registerEmojiLocale(locale: string, data: unknown): void {
     registeredLocales.set(locale, data);
@@ -61,9 +50,8 @@ async function resolveLocaleData(locale: string): Promise<unknown> {
     if (registeredLocales.has(locale)) {
         return registeredLocales.get(locale);
     }
-    const bundledLoader = DEFAULT_BUNDLED_LOCALES[locale];
-    if (bundledLoader) {
-        return bundledLoader();
+    if (locale === DEFAULT_LOCALE) {
+        return loadEnLocale();
     }
     return fetchLocaleFromCdn(locale);
 }
