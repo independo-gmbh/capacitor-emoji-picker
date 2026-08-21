@@ -6,11 +6,12 @@ import type {
     EmojiPickerResult,
     EmojiPickerTheme,
 } from '../../definitions';
-import { getBundledEmojiDataSourceUrl } from './emoji-data-source';
+import { getEmojiDataSourceUrl } from './emoji-data-source';
 
 /** Minimal shape of the `<emoji-picker>` custom element this presenter depends on. */
 export interface EmojiPickerElement extends HTMLElement {
     dataSource: string;
+    locale: string;
 }
 
 /** Registers `<emoji-picker>` (if needed) and creates the element. */
@@ -232,9 +233,24 @@ function createCloseButtonHeader(options: EmojiPickerCloseButtonOptions): {
     return { header, button };
 }
 
+/**
+ * Seeds `locale`'s persisted preferred skin tone via `emoji-picker-element`'s own `Database`, so
+ * `<emoji-picker>` picks it up as its default on render. A no-op for `skinTone === undefined`,
+ * so an already-made user choice (persisted in IndexedDB) is never overwritten.
+ */
+async function defaultSeedSkinTone(locale: string, skinTone: number): Promise<void> {
+    const { default: Database } = await import('emoji-picker-element/database');
+    const db = new Database({ locale });
+    await db.setPreferredSkinTone(skinTone);
+}
+
 export interface WebEmojiPickerPresenterOptions {
     /** Creates the picker element. Overridable for testing. */
     createPickerElement?: () => Promise<EmojiPickerElement>;
+    /** Seeds the locale's persisted preferred skin tone. Overridable for testing. */
+    seedSkinTone?: (locale: string, skinTone: number) => Promise<void>;
+    /** Resolves the `dataSource` URL for a locale. Overridable for testing. */
+    getDataSourceUrl?: (locale: string) => Promise<string>;
 }
 
 /**
@@ -245,9 +261,13 @@ export interface WebEmojiPickerPresenterOptions {
  */
 export class WebEmojiPickerPresenter {
     private readonly createPickerElement: () => Promise<EmojiPickerElement>;
+    private readonly seedSkinTone: (locale: string, skinTone: number) => Promise<void>;
+    private readonly getDataSourceUrl: (locale: string) => Promise<string>;
 
     public constructor(options: WebEmojiPickerPresenterOptions = {}) {
         this.createPickerElement = options.createPickerElement ?? defaultCreatePickerElement;
+        this.seedSkinTone = options.seedSkinTone ?? defaultSeedSkinTone;
+        this.getDataSourceUrl = options.getDataSourceUrl ?? getEmojiDataSourceUrl;
     }
 
     public async present(
@@ -265,11 +285,18 @@ export class WebEmojiPickerPresenter {
         // `prefers-color-scheme` tracking) so the picker and the sheet chrome around it always
         // agree, fixing the mismatch from issue #19.
         const resolvedTheme = resolveTheme(options.theme);
+        const locale = options.locale ?? 'en';
+
+        if (options.skinTone !== undefined) {
+            // Seeded before the element is created so its initial render already reflects it.
+            await this.seedSkinTone(locale, options.skinTone);
+        }
 
         let picker: EmojiPickerElement;
         try {
             picker = await this.createPickerElement();
-            picker.dataSource = getBundledEmojiDataSourceUrl();
+            picker.locale = locale;
+            picker.dataSource = await this.getDataSourceUrl(locale);
             picker.classList.add(resolvedTheme);
         } catch {
             throw new Error(ErrorCodes.NOT_IMPLEMENTED);
