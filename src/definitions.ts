@@ -1,3 +1,5 @@
+import type { EmojiPickerLocaleCode } from './core/emoji-locale';
+
 /**
  * How the picker should be presented.
  */
@@ -7,6 +9,15 @@ export type EmojiPickerPresentation = 'auto' | 'web';
  * The picker's appearance.
  */
 export type EmojiPickerTheme = 'system' | 'light' | 'dark';
+
+/**
+ * A locale code `emoji-picker-element-data` ships a dataset for, usable with
+ * `EmojiPickerOptions.locale`/`registerEmojiLocale`. Widened to accept any other string too, so a
+ * locale registered under a code outside this list still type-checks.
+ */
+// `string & {}` is the standard trick for "literal union with editor autocomplete, but any
+// string still type-checks".
+export type EmojiPickerLocale = EmojiPickerLocaleCode | (string & {});
 
 /**
  * Options for presenting the emoji picker.
@@ -48,6 +59,43 @@ export interface EmojiPickerOptions {
      * @default 'system'
      */
     theme?: EmojiPickerTheme;
+    /**
+     * BCP-47-ish locale code for the emoji dataset/UI strings (e.g. `'en'`, `'de'`, `'fr'`).
+     *
+     * Web only — ignored on iOS/Android, which follow the device locale automatically via the
+     * system emoji keyboard/`androidx.emoji2.emojipicker`. `'en'` is the only locale bundled and
+     * available offline by default; any other locale is fetched from a CDN at present-time unless
+     * registered ahead of time via `registerEmojiLocale`.
+     *
+     * Every locale `emoji-picker-element-data` ships is available as an individually importable
+     * loader (e.g. `enGbLocale`, `ptLocale`, `zhHantLocale`, ...) from
+     * `capacitor-emoji-picker/dist/esm/platform/web/locales`, each carrying its own code as a
+     * typed `.locale` property, so an app can register — and pass to this option — any of them
+     * offline without a CDN dependency by importing only the ones it needs:
+     * ```ts
+     * import { registerEmojiLocale } from 'capacitor-emoji-picker';
+     * import { ptLocale } from 'capacitor-emoji-picker/dist/esm/platform/web/locales';
+     * registerEmojiLocale(ptLocale.locale, await ptLocale());
+     * EmojiPicker.present({ locale: ptLocale.locale });
+     * ```
+     * This is a deep import rather than a root-level export deliberately: the package root is
+     * also the standalone `dist/plugin.js` bundle's entry point, which inlines every dynamic
+     * import it can reach (there's no code-splitting in that single-file build) — re-exporting
+     * all 28 loaders from there would have pulled every locale's dataset into it. A bundler
+     * resolving this deep import still tree-shakes away every loader (and its underlying
+     * dataset) the app never imports.
+     * @default 'en'
+     */
+    locale?: EmojiPickerLocale;
+    /**
+     * Seeds the picker's starting skin tone (`0` = none/default, `1`-`5` = light through dark).
+     *
+     * Web only — iOS/Android use the OS's own last-selected skin tone. On web, the underlying
+     * picker persists the user's own choice after this via IndexedDB (keyed by `locale`), so this
+     * only affects the very first render for a given locale/origin.
+     * @default 0
+     */
+    skinTone?: 0 | 1 | 2 | 3 | 4 | 5;
 }
 
 /**
