@@ -13,7 +13,7 @@
     "url": "https://github.com/independo-gmbh/capacitor-emoji-picker.git"
   },
   "description": "Emoji picker plugin for Capacitor 8 with native Android support, iOS system emoji keyboard integration, and a web fallback.",
-  "version": "1.3.1-dev.2",
+  "version": "1.3.1-dev.3",
   "packageManager": "pnpm@11.8.0",
   "devDependencies": {
     "@capacitor/android": "catalog:",
