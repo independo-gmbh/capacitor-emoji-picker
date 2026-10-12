@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.emoji2.emojipicker.EmojiPickerView;
+import androidx.recyclerview.widget.RecyclerView;
 import app.independo.capacitoremojipicker.core.EmojiBackdropOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
@@ -34,6 +35,19 @@ public class DefaultEmojiPickerDialogFactory implements EmojiPickerDialogFactory
         });
 
         dialog.setContentView(pickerView);
+
+        // `BottomSheetBehavior` coordinates with exactly one nested-scrolling child, the first one it
+        // finds depth-first on each layout. `EmojiPickerView` puts its horizontal category header
+        // `RecyclerView` before the vertical emoji grid, so without this the behavior binds the header
+        // and every vertical drag on the grid moves the sheet instead of scrolling the grid. The
+        // picker inflates its children after loading emoji data asynchronously, so this runs on every
+        // layout pass rather than once; each header only flips once, and the follow-up
+        // `requestLayout` makes the behavior look up its scrolling child again.
+        pickerView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            if (disableHorizontalNestedScrolling(pickerView)) {
+                pickerView.requestLayout();
+            }
+        });
         dialog.setCanceledOnTouchOutside(dismissOnBackdropTap);
         dialog.setOnDismissListener(d -> listener.onDismissed());
 
@@ -57,6 +71,30 @@ public class DefaultEmojiPickerDialogFactory implements EmojiPickerDialogFactory
         dialog.show();
 
         return dialog::dismiss;
+    }
+
+    /**
+     * Turns off nested scrolling on every {@link RecyclerView} under {@code view} that can't scroll
+     * vertically, so a vertical list is the one {@code BottomSheetBehavior} binds to. Returns whether
+     * any view changed.
+     */
+    private static boolean disableHorizontalNestedScrolling(View view) {
+        boolean changed = false;
+        if (view instanceof RecyclerView) {
+            RecyclerView recyclerView = (RecyclerView) view;
+            RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+            if (layoutManager != null && !layoutManager.canScrollVertically() && recyclerView.isNestedScrollingEnabled()) {
+                recyclerView.setNestedScrollingEnabled(false);
+                changed = true;
+            }
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                changed |= disableHorizontalNestedScrolling(group.getChildAt(i));
+            }
+        }
+        return changed;
     }
 
     /**

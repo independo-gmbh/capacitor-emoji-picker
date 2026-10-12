@@ -19,7 +19,8 @@ let package = Package(
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm")
             ],
-            path: "ios/Sources/EmojiPicker"),
+            path: "ios/Sources/EmojiPicker",
+            resources: [.copy("PrivacyInfo.xcprivacy")]),
         .testTarget(
             name: "EmojiPickerTests",
             dependencies: ["EmojiPicker"],
