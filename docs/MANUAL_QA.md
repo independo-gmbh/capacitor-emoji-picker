@@ -23,6 +23,8 @@ Run the full checklist below on:
 - [ ] ZWJ/family emoji selection returns the correct Unicode string (grapheme unchanged)
 - [ ] Cancel via every supported dismissal path (close button, backdrop tap, system back/swipe) returns
       `{ emoji: null }`
+- [ ] Android native picker: a long category (e.g. "Smileys and emotions") scrolls to its end at both the
+      collapsed and the expanded sheet height, and backdrop tap / system back still dismiss the picker
 - [ ] `presentation: 'auto'` prefers native UI when available
 - [ ] Native-to-web fallback triggers correctly when native presentation is unavailable/fails (e.g. simulate by
       forcing the native-unavailable path where feasible), and does not trigger on user cancellation

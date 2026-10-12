@@ -53,6 +53,33 @@ pnpm exec cap sync
 - Android minSdk 24+; builds require Java 21 (recommended). `pnpm verify:android` requires a Java version supported
   by the bundled Gradle wrapper (currently Java 21–24, with Java 21 recommended).
 
+### iOS privacy manifest
+
+To bring up the system emoji keyboard, the plugin reads `UITextInputMode.activeInputModes`. Apple lists this as a
+[required-reason API](https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api)
+in the category `NSPrivacyAccessedAPICategoryActiveKeyboards`. The plugin collects no data and does no tracking, and
+the keyboard information never leaves the device.
+
+Plugin version 1.3.3 and later ship their own `PrivacyInfo.xcprivacy` for Swift Package Manager and CocoaPods, so apps
+need to declare nothing.
+
+On older versions, the plugin is compiled into the app binary without a manifest, and App Store Connect reports
+`ITMS-91053` unless the app declares the reason itself. Add this entry to `NSPrivacyAccessedAPITypes` in the app's
+own `PrivacyInfo.xcprivacy`:
+
+```xml
+<dict>
+	<key>NSPrivacyAccessedAPIType</key>
+	<string>NSPrivacyAccessedAPICategoryActiveKeyboards</string>
+	<key>NSPrivacyAccessedAPITypeReasons</key>
+	<array>
+		<string>54BD.1</string>
+	</array>
+</dict>
+```
+
+`54BD.1` covers reading the active keyboards to present the correct UI to the user.
+
 ### Compatibility
 
 Versioning follows Capacitor versioning. Major versions of the plugin are compatible with major versions of Capacitor.
