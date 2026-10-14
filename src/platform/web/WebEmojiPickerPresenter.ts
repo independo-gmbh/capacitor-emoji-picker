@@ -14,14 +14,30 @@ export interface EmojiPickerElement extends HTMLElement {
     locale: string;
 }
 
-/** Registers `<emoji-picker>` (if needed) and creates the element. */
-async function defaultCreatePickerElement(): Promise<EmojiPickerElement> {
+/** What the picker element is created with. */
+export interface EmojiPickerElementProps {
+    readonly locale: string;
+    readonly dataSource: string;
+}
+
+/**
+ * Registers `<emoji-picker>` (if needed) and creates the element with its locale and data source.
+ *
+ * The element's constructor queues the creation of its database in a microtask, with whatever
+ * `locale` and `dataSource` are set by then - the jsDelivr default unless something else is.
+ * Both are therefore set in the same synchronous step as `createElement`, before anything is
+ * awaited, so that database is the only one and no request goes to the CDN.
+ */
+async function defaultCreatePickerElement(props: EmojiPickerElementProps): Promise<EmojiPickerElement> {
     try {
         await import('emoji-picker-element');
-        return document.createElement('emoji-picker') as unknown as EmojiPickerElement;
     } catch {
         throw new Error(ErrorCodes.NOT_IMPLEMENTED);
     }
+    const picker = document.createElement('emoji-picker') as unknown as EmojiPickerElement;
+    picker.dataSource = props.dataSource;
+    picker.locale = props.locale;
+    return picker;
 }
 
 /**
@@ -245,8 +261,8 @@ async function defaultSeedSkinTone(locale: string, skinTone: number): Promise<vo
 }
 
 export interface WebEmojiPickerPresenterOptions {
-    /** Creates the picker element. Overridable for testing. */
-    createPickerElement?: () => Promise<EmojiPickerElement>;
+    /** Creates the picker element with its locale and data source. Overridable for testing. */
+    createPickerElement?: (props: EmojiPickerElementProps) => Promise<EmojiPickerElement>;
     /** Seeds the locale's persisted preferred skin tone. Overridable for testing. */
     seedSkinTone?: (locale: string, skinTone: number) => Promise<void>;
     /** Resolves the `dataSource` URL for a locale. Overridable for testing. */
@@ -260,7 +276,7 @@ export interface WebEmojiPickerPresenterOptions {
  * orchestration (issue #6) can present the same web picker from inside a native WebView.
  */
 export class WebEmojiPickerPresenter {
-    private readonly createPickerElement: () => Promise<EmojiPickerElement>;
+    private readonly createPickerElement: (props: EmojiPickerElementProps) => Promise<EmojiPickerElement>;
     private readonly seedSkinTone: (locale: string, skinTone: number) => Promise<void>;
     private readonly getDataSourceUrl: (locale: string) => Promise<string>;
 
@@ -294,9 +310,12 @@ export class WebEmojiPickerPresenter {
 
         let picker: EmojiPickerElement;
         try {
-            picker = await this.createPickerElement();
+            // Resolved before the element exists, so it never starts with the default data source
+            // (see `defaultCreatePickerElement`).
+            const dataSource = await this.getDataSourceUrl(locale);
+            picker = await this.createPickerElement({ locale, dataSource });
+            picker.dataSource = dataSource;
             picker.locale = locale;
-            picker.dataSource = await this.getDataSourceUrl(locale);
             picker.classList.add(resolvedTheme);
         } catch {
             throw new Error(ErrorCodes.NOT_IMPLEMENTED);
