@@ -41,13 +41,13 @@ describe('WebEmojiPickerPresenter with the real element factory', () => {
             // A real resolution yields at least once before the URL is known.
             getDataSourceUrl: async (locale) => {
                 await Promise.resolve();
-                return `blob:${locale}`;
+                return { locale, url: `data:${locale}` };
             },
         });
 
         void presenter.present({ locale: 'de' });
         await flush();
 
-        expect(databases).toEqual([{ locale: 'de', dataSource: 'blob:de' }]);
+        expect(databases).toEqual([{ locale: 'de', dataSource: 'data:de' }]);
     });
 });

@@ -69,12 +69,12 @@ export interface EmojiPickerOptions {
      *
      * Every locale `emoji-picker-element-data` ships is available as an individual loader module
      * (e.g. `en-gb`, `pt`, `zh-hant`, ...) under
-     * `capacitor-emoji-picker/dist/esm/platform/web/locales/<code>`; its default export carries
-     * its own code as a typed `.locale` property. An app can register — and pass to this option —
-     * any of them offline without a CDN dependency by importing only the ones it needs:
+     * `@independo/capacitor-emoji-picker/dist/esm/platform/web/locales/` (for example
+     * `.../locales/pt`); its default export carries its own code as a typed `.locale`
+     * property. An app can register — and pass to this option — any of them offline without a CDN dependency by importing only the ones it needs:
      * ```ts
-     * import { registerEmojiLocale } from 'capacitor-emoji-picker';
-     * import ptLocale from 'capacitor-emoji-picker/dist/esm/platform/web/locales/pt';
+     * import { registerEmojiLocale } from '@independo/capacitor-emoji-picker';
+     * import ptLocale from '@independo/capacitor-emoji-picker/dist/esm/platform/web/locales/pt';
      * registerEmojiLocale(ptLocale.locale, await ptLocale());
      * EmojiPicker.present({ locale: ptLocale.locale });
      * ```
