@@ -1,10 +1,11 @@
 /**
  * Every locale loader available for opt-in use with `registerEmojiLocale`, keyed by name.
  *
- * Only `en`/`de`/`es`/`fr`/`ja` are wired up as the default bundled set (see `emoji-data-source.ts`);
- * every other export here is inert until a caller imports it. Import only the loaders you need
- * (e.g. `import { ptLocale } from 'capacitor-emoji-picker'`) so your own bundler tree-shakes the
- * rest away instead of ever reaching them.
+ * Only `en` is wired up as the default bundled dataset (see `emoji-data-source.ts`, which loads it
+ * lazily); every other export here is inert until a caller imports it. Prefer importing the
+ * per-locale module directly (e.g. `import ptLocale from '.../dist/esm/platform/web/locales/pt'`):
+ * importing from this index is tree-shaken out of the bundle graph, but bundlers like esbuild still
+ * emit every locale's dataset file into the build output.
  */
 export { default as enLocale } from './en';
 export { default as bnLocale } from './bn';

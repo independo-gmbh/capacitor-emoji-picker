@@ -67,23 +67,23 @@ export interface EmojiPickerOptions {
      * available offline by default; any other locale is fetched from a CDN at present-time unless
      * registered ahead of time via `registerEmojiLocale`.
      *
-     * Every locale `emoji-picker-element-data` ships is available as an individually importable
-     * loader (e.g. `enGbLocale`, `ptLocale`, `zhHantLocale`, ...) from
-     * `capacitor-emoji-picker/dist/esm/platform/web/locales`, each carrying its own code as a
-     * typed `.locale` property, so an app can register — and pass to this option — any of them
-     * offline without a CDN dependency by importing only the ones it needs:
+     * Every locale `emoji-picker-element-data` ships is available as an individual loader module
+     * (e.g. `en-gb`, `pt`, `zh-hant`, ...) under
+     * `@independo/capacitor-emoji-picker/dist/esm/platform/web/locales/` (for example
+     * `.../locales/pt`); its default export carries its own code as a typed `.locale`
+     * property. An app can register — and pass to this option — any of them offline without a CDN dependency by importing only the ones it needs:
      * ```ts
-     * import { registerEmojiLocale } from 'capacitor-emoji-picker';
-     * import { ptLocale } from 'capacitor-emoji-picker/dist/esm/platform/web/locales';
+     * import { registerEmojiLocale } from '@independo/capacitor-emoji-picker';
+     * import ptLocale from '@independo/capacitor-emoji-picker/dist/esm/platform/web/locales/pt';
      * registerEmojiLocale(ptLocale.locale, await ptLocale());
      * EmojiPicker.present({ locale: ptLocale.locale });
      * ```
-     * This is a deep import rather than a root-level export deliberately: the package root is
-     * also the standalone `dist/plugin.js` bundle's entry point, which inlines every dynamic
-     * import it can reach (there's no code-splitting in that single-file build) — re-exporting
-     * all 28 loaders from there would have pulled every locale's dataset into it. A bundler
-     * resolving this deep import still tree-shakes away every loader (and its underlying
-     * dataset) the app never imports.
+     * Import the per-locale module, not the `.../locales` index: a bundler tree-shakes the unused
+     * loaders of the index from the module graph, but bundlers such as esbuild still write every
+     * locale's dataset file (~14 MB in total) into the build output. This is a deep import rather
+     * than a root-level export deliberately: the package root is also the standalone
+     * `dist/plugin.js` bundle's entry point, which inlines every dynamic import it can reach
+     * (there's no code-splitting in that single-file build).
      * @default 'en'
      */
     locale?: EmojiPickerLocale;
