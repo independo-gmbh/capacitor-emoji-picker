@@ -4,6 +4,11 @@ import { WebEmojiPickerPresenter } from '../../../src/platform/web/WebEmojiPicke
 
 const ANIMATION_MS = 200;
 
+// Encoding the real dataset reads it through a `FileReader`, which these fake timers would stall.
+jest.mock('../../../src/platform/web/emoji-data-source', () => ({
+    getEmojiDataSourceUrl: (locale: string) => Promise.resolve({ locale, url: `data:application/json;base64,${locale}` }),
+}));
+
 function createFakePicker(): EmojiPickerElement {
     return document.createElement('emoji-picker') as unknown as EmojiPickerElement;
 }
@@ -29,10 +34,6 @@ async function advancePastCloseAnimation(): Promise<void> {
 }
 
 describe('WebEmojiPickerPresenter', () => {
-    beforeAll(() => {
-        (URL as unknown as { createObjectURL: jest.Mock }).createObjectURL = jest.fn(() => 'blob:mock-url');
-    });
-
     beforeEach(() => {
         jest.useFakeTimers();
     });
@@ -244,7 +245,7 @@ describe('WebEmojiPickerPresenter', () => {
 
         const resultPromise = presenter.present();
         await flush();
-        expect(picker.dataSource).toBe('blob:mock-url');
+        expect(picker.dataSource).toBe('data:application/json;base64,en');
 
         picker.dispatchEvent(new CustomEvent('emoji-click', { detail: { unicode: '😀' } }));
         await advancePastCloseAnimation();
@@ -496,28 +497,28 @@ describe('WebEmojiPickerPresenter', () => {
         const picker = createFakePicker();
         const presenter = new WebEmojiPickerPresenter({
             createPickerElement: () => Promise.resolve(picker),
-            getDataSourceUrl: (locale) => Promise.resolve(`blob:${locale}`),
+            getDataSourceUrl: (locale) => Promise.resolve({ locale, url: `data:${locale}` }),
         });
 
         presenter.present();
         await flush();
 
         expect(picker.locale).toBe('en');
-        expect(picker.dataSource).toBe('blob:en');
+        expect(picker.dataSource).toBe('data:en');
     });
 
     it('sets a custom locale on the picker element', async () => {
         const picker = createFakePicker();
         const presenter = new WebEmojiPickerPresenter({
             createPickerElement: () => Promise.resolve(picker),
-            getDataSourceUrl: (locale) => Promise.resolve(`blob:${locale}`),
+            getDataSourceUrl: (locale) => Promise.resolve({ locale, url: `data:${locale}` }),
         });
 
         presenter.present({ locale: 'de' });
         await flush();
 
         expect(picker.locale).toBe('de');
-        expect(picker.dataSource).toBe('blob:de');
+        expect(picker.dataSource).toBe('data:de');
     });
 
     it('seeds the preferred skin tone before creating the picker when skinTone is set', async () => {
@@ -529,7 +530,7 @@ describe('WebEmojiPickerPresenter', () => {
         presenter.present({ locale: 'de', skinTone: 4 });
         await flush();
 
-        expect(seedSkinTone).toHaveBeenCalledWith('de', 4);
+        expect(seedSkinTone).toHaveBeenCalledWith('de', 4, 'data:application/json;base64,de');
         expect(seedSkinTone.mock.invocationCallOrder[0]).toBeLessThan(createPickerElement.mock.invocationCallOrder[0]);
     });
 
@@ -542,5 +543,22 @@ describe('WebEmojiPickerPresenter', () => {
         await flush();
 
         expect(seedSkinTone).not.toHaveBeenCalled();
+    });
+
+    it('uses the locale the data source actually serves for the picker and the skin-tone seed', async () => {
+        const picker = createFakePicker();
+        const seedSkinTone = jest.fn().mockResolvedValue(undefined);
+        const presenter = new WebEmojiPickerPresenter({
+            createPickerElement: () => Promise.resolve(picker),
+            seedSkinTone,
+            // 'de' is not registered and the CDN is unreachable, so the resolver served 'en'.
+            getDataSourceUrl: () => Promise.resolve({ locale: 'en', url: 'data:en' }),
+        });
+
+        presenter.present({ locale: 'de', skinTone: 3 });
+        await flush();
+
+        expect(picker.locale).toBe('en');
+        expect(seedSkinTone).toHaveBeenCalledWith('en', 3, 'data:en');
     });
 });

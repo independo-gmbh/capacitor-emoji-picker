@@ -82,7 +82,7 @@ public class EmojiPicker: CAPPlugin, CAPBridgedPlugin {
         service.present(options: options) { result in
             switch result {
             case .success(let pickerResult):
-                call.resolve(["emoji": pickerResult.emoji as Any])
+                call.resolve(pickerResult.bridgePayload)
             case .failure(let error):
                 call.reject(error.code, error.code)
             }

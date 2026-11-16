@@ -5,6 +5,12 @@ import { WebEmojiPickerPresenter } from '../../../src/platform/web/WebEmojiPicke
 import { registerNativeWebBridge } from '../../../src/platform/web/nativeWebBridge';
 
 const ANIMATION_MS = 200;
+
+// Encoding the real dataset reads it through a `FileReader`, which these fake timers would stall.
+jest.mock('../../../src/platform/web/emoji-data-source', () => ({
+    getEmojiDataSourceUrl: (locale: string) => Promise.resolve({ locale, url: `data:application/json;base64,${locale}` }),
+}));
+
 /**
  * `WebEmojiPickerPresenter.present()` has multiple internal `await`s before the dialog is
  * appended (picker creation, then data-source resolution), so draining a single microtask isn't
@@ -26,10 +32,6 @@ function createFakePicker(): EmojiPickerElement {
 }
 
 describe('registerNativeWebBridge', () => {
-    beforeAll(() => {
-        (URL as unknown as { createObjectURL: jest.Mock }).createObjectURL = jest.fn(() => 'blob:mock-url');
-    });
-
     beforeEach(() => {
         jest.useFakeTimers();
         jest.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(true);

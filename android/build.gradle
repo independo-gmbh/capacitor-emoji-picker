@@ -79,6 +79,8 @@ dependencies {
     // relying on it being pulled in transitively via material) for the same reason.
     implementation "androidx.recyclerview:recyclerview:$androidxRecyclerViewVersion"
     testImplementation "junit:junit:$junitVersion"
+    // Android unit tests only get a stubbed org.json; JSObject (a JSONObject) needs the real one.
+    testImplementation "org.json:json:20240303"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
 }

@@ -1,9 +1,8 @@
 import { createLocaleLoader } from './create-locale-loader';
-import data from 'emoji-picker-element-data/en/emojibase/data.json';
 
 /**
- * Lazily loads the English emoji dataset. Statically imported, unlike the other locales: `en`
- * is the default, used on every `present()` call that doesn't set `locale`, so lazy-loading
- * it would only add latency to the common case without any code-splitting upside.
+ * Lazily loads the English emoji dataset, so it code-splits into its own chunk. `en` is the
+ * default, but it is only needed once the picker is presented, so the package root must not
+ * carry its ~400 KB into an importer's initial chunk.
  */
-export default createLocaleLoader('en', async () => data);
+export default createLocaleLoader('en', async () => (await import('emoji-picker-element-data/en/emojibase/data.json')).default);

@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.json.JSONObject;
 
 /** Capacitor bridge for the EmojiPicker plugin. */
 @CapacitorPlugin(name = "EmojiPicker")
@@ -81,9 +82,7 @@ public class EmojiPicker extends Plugin {
             new EmojiPickerCallback() {
                 @Override
                 public void onResult(EmojiPickerResult result) {
-                    JSObject ret = new JSObject();
-                    ret.put("emoji", result.getEmoji());
-                    call.resolve(ret);
+                    call.resolve(buildResultObject(result));
                 }
 
                 @Override
@@ -92,5 +91,16 @@ public class EmojiPicker extends Plugin {
                 }
             }
         );
+    }
+
+    /**
+     * Builds the JS result. {@code JSObject} extends {@code JSONObject}, where {@code put(name, null)} removes the key,
+     * so a dismissal must be written as {@code JSONObject.NULL} for JS to receive {@code {emoji: null}}.
+     */
+    static JSObject buildResultObject(EmojiPickerResult result) {
+        JSObject ret = new JSObject();
+        String emoji = result.getEmoji();
+        ret.put("emoji", emoji != null ? emoji : JSONObject.NULL);
+        return ret;
     }
 }

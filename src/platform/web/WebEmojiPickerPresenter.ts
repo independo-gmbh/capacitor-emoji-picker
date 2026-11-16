@@ -6,6 +6,7 @@ import type {
     EmojiPickerResult,
     EmojiPickerTheme,
 } from '../../definitions';
+import type { EmojiDataSource } from './emoji-data-source';
 import { getEmojiDataSourceUrl } from './emoji-data-source';
 
 /** Minimal shape of the `<emoji-picker>` custom element this presenter depends on. */
@@ -38,21 +39,6 @@ async function defaultCreatePickerElement(props: EmojiPickerElementProps): Promi
     picker.dataSource = props.dataSource;
     picker.locale = props.locale;
     return picker;
-}
-
-/**
- * `emoji-picker-element`'s internal `Database` runs a background `fetch(dataSource, { method: 'HEAD' })`
- * freshness check whenever it already has cached data for the locale (i.e. on the second+ open in a
- * session). Non-`GET` requests to `blob:` URLs always throw `TypeError` per the Fetch spec, and this
- * internal call isn't awaited, so it otherwise surfaces as a noisy but harmless `unhandledrejection`.
- * This filters out only that specific rejection shape while a picker is open, letting everything else
- * propagate normally to the host app.
- */
-function isKnownBlobHeadCheckRejection(reason: unknown): boolean {
-    if (!(reason instanceof TypeError) || !reason.message.includes('Failed to fetch')) {
-        return false;
-    }
-    return reason.stack?.includes('getETag') ?? false;
 }
 
 const SHEET_STYLE_ELEMENT_ID = 'emoji-picker-sheet-styles';
@@ -253,10 +239,13 @@ function createCloseButtonHeader(options: EmojiPickerCloseButtonOptions): {
  * Seeds `locale`'s persisted preferred skin tone via `emoji-picker-element`'s own `Database`, so
  * `<emoji-picker>` picks it up as its default on render. A no-op for `skinTone === undefined`,
  * so an already-made user choice (persisted in IndexedDB) is never overwritten.
+ *
+ * The `Database` gets the picker's own `dataSource`: left at its jsDelivr default, it would load
+ * an empty database from the CDN (failing offline) and check a cached one against the CDN.
  */
-async function defaultSeedSkinTone(locale: string, skinTone: number): Promise<void> {
+async function defaultSeedSkinTone(locale: string, skinTone: number, dataSource: string): Promise<void> {
     const { default: Database } = await import('emoji-picker-element/database');
-    const db = new Database({ locale });
+    const db = new Database({ locale, dataSource });
     await db.setPreferredSkinTone(skinTone);
 }
 
@@ -264,9 +253,9 @@ export interface WebEmojiPickerPresenterOptions {
     /** Creates the picker element with its locale and data source. Overridable for testing. */
     createPickerElement?: (props: EmojiPickerElementProps) => Promise<EmojiPickerElement>;
     /** Seeds the locale's persisted preferred skin tone. Overridable for testing. */
-    seedSkinTone?: (locale: string, skinTone: number) => Promise<void>;
-    /** Resolves the `dataSource` URL for a locale. Overridable for testing. */
-    getDataSourceUrl?: (locale: string) => Promise<string>;
+    seedSkinTone?: (locale: string, skinTone: number, dataSource: string) => Promise<void>;
+    /** Resolves the `dataSource` URL, and the locale it serves, for a requested locale. Overridable for testing. */
+    getDataSourceUrl?: (locale: string) => Promise<EmojiDataSource>;
 }
 
 /**
@@ -277,8 +266,8 @@ export interface WebEmojiPickerPresenterOptions {
  */
 export class WebEmojiPickerPresenter {
     private readonly createPickerElement: (props: EmojiPickerElementProps) => Promise<EmojiPickerElement>;
-    private readonly seedSkinTone: (locale: string, skinTone: number) => Promise<void>;
-    private readonly getDataSourceUrl: (locale: string) => Promise<string>;
+    private readonly seedSkinTone: (locale: string, skinTone: number, dataSource: string) => Promise<void>;
+    private readonly getDataSourceUrl: (locale: string) => Promise<EmojiDataSource>;
 
     public constructor(options: WebEmojiPickerPresenterOptions = {}) {
         this.createPickerElement = options.createPickerElement ?? defaultCreatePickerElement;
@@ -301,18 +290,27 @@ export class WebEmojiPickerPresenter {
         // `prefers-color-scheme` tracking) so the picker and the sheet chrome around it always
         // agree, fixing the mismatch from issue #19.
         const resolvedTheme = resolveTheme(options.theme);
-        const locale = options.locale ?? 'en';
+        let locale = options.locale ?? 'en';
+
+        let dataSource: string;
+        try {
+            // Resolved before the element exists, so it never starts with the default data source
+            // (see `defaultCreatePickerElement`). The resolver may have fallen back to another
+            // locale's data; the picker and the skin-tone seed must then use that locale too, or
+            // `emoji-picker-element` would file the fallback data under the requested locale's
+            // IndexedDB database and overwrite its cached copy.
+            ({ locale, url: dataSource } = await this.getDataSourceUrl(locale));
+        } catch {
+            throw new Error(ErrorCodes.NOT_IMPLEMENTED);
+        }
 
         if (options.skinTone !== undefined) {
             // Seeded before the element is created so its initial render already reflects it.
-            await this.seedSkinTone(locale, options.skinTone);
+            await this.seedSkinTone(locale, options.skinTone, dataSource);
         }
 
         let picker: EmojiPickerElement;
         try {
-            // Resolved before the element exists, so it never starts with the default data source
-            // (see `defaultCreatePickerElement`).
-            const dataSource = await this.getDataSourceUrl(locale);
             picker = await this.createPickerElement({ locale, dataSource });
             picker.dataSource = dataSource;
             picker.locale = locale;
@@ -354,14 +352,7 @@ export class WebEmojiPickerPresenter {
             const previouslyFocusedElement = document.activeElement as HTMLElement | null;
             const previousBodyOverflow = document.body.style.overflow;
 
-            const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-                if (isKnownBlobHeadCheckRejection(event.reason)) {
-                    event.preventDefault();
-                }
-            };
-
             const finish = (result: EmojiPickerResult) => {
-                window.removeEventListener('unhandledrejection', onUnhandledRejection);
                 document.body.style.overflow = previousBodyOverflow;
                 dialog.close();
                 dialog.remove();
@@ -445,7 +436,6 @@ export class WebEmojiPickerPresenter {
             dialog.addEventListener('click', onDialogClick);
             dialog.addEventListener('cancel', onCancel);
             document.addEventListener('keydown', onKeyDown);
-            window.addEventListener('unhandledrejection', onUnhandledRejection);
             closeButtonHeader?.button.addEventListener('click', onCloseButtonClick);
 
             if (closeButtonHeader) {
