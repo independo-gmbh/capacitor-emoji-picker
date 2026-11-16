@@ -59,3 +59,22 @@ describe('getEmojiDataSourceUrl', () => {
         expect(url).toBe(en);
     });
 });
+
+describe('bundled en dataset loading', () => {
+    it('is not loaded until the en dataset is resolved', async () => {
+        jest.resetModules();
+        const loaded = jest.fn();
+        jest.doMock('emoji-picker-element-data/en/emojibase/data.json', () => {
+            loaded();
+            return { __esModule: true, default: [{ emoji: '😀' }] };
+        });
+        const { getEmojiDataSourceUrl, registerEmojiLocale } = await import('../../../src/platform/web/emoji-data-source');
+        registerEmojiLocale('xx', [{ fake: true }]);
+        await getEmojiDataSourceUrl('xx');
+        expect(loaded).not.toHaveBeenCalled();
+
+        await getEmojiDataSourceUrl('en');
+        expect(loaded).toHaveBeenCalledTimes(1);
+        jest.dontMock('emoji-picker-element-data/en/emojibase/data.json');
+    });
+});
